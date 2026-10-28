@@ -231,3 +231,28 @@ export interface HistoryImportResult {
   imported: number;
   skipped: number;
 }
+
+export interface SignedUploadDTO {
+  signedUrl: string;
+  path: string;
+}
+
+export interface UploadedImageDTO {
+  url: string;
+  path: string;
+  width: number;
+  height: number;
+  bytes: number;
+}
+
+export interface VariationDTO {
+  location_id: string;
+  summary: string;
+}
+
+export interface CreatePostsResult {
+  campaign_id: string | null;
+  created: number;
+  status: PostStatus;
+  post_ids: string[];
+}

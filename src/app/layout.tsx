@@ -32,7 +32,7 @@ export function AppLayout() {
 function SignedInShell() {
   const alerts = useSystemAlerts();
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col overflow-x-clip">
       <AnnouncementBar alerts={alerts} />
       <Navbar />
       <main id="main" className="container flex-1 pb-28 pt-8 sm:pt-10">

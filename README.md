@@ -4,7 +4,7 @@ Google Business Profile posting platform for Rank Orbit LLC: connect Gmail accou
 Business Profiles, compose or bulk-import posts, approve them, and publish on schedule through
 the official Google Business Profile APIs.
 
-> Status: **Phases 1–3 (scaffold, database, Google connect + sync)** complete. The full setup guide is written in the final phase.
+> Status: **Phases 1–4 (scaffold, database, Google connect + sync, compose + media + AI)** complete. The full setup guide is written in the final phase.
 
 ## Stack
 
@@ -58,3 +58,19 @@ reachable.
   one forced refresh on 401, backoff on 429/5xx (1s, 2s, 4s), a per-instance throttle well under the
   300 requests/minute quota, and `invalid_grant` marks the connection `needs_reauth` and notifies
   the team.
+
+## Compose, uploads and AI
+
+- **Uploads** are two-step because Vercel functions accept at most 4.5 MB request bodies: the
+  browser asks `POST /api/uploads/sign` for a one-time signed Storage URL, PUTs the raw file
+  (up to 15 MB) to `post-media/incoming/…`, then calls `POST /api/uploads/complete`. The server
+  converts HEIC, auto-rotates, strips metadata, converts to JPG, resizes to a 1600px long edge,
+  rejects images under 400×300, compresses under 1.5 MB, stores the result under `uploads/` and
+  deletes the raw file.
+- **AI variations**: `POST /api/ai/variations` writes one unique post per location with Gemini
+  (batches of 8 locations per call, strict JSON validated with zod, one retry on invalid output).
+  `GEMINI_MODEL` defaults to `gemini-flash-latest`, Google's alias for the current Flash model.
+- **Posts**: `POST /api/posts` validates that each chosen Gmail can manage its location, fills
+  the button link from the client's default link or the location's website, and creates posts as
+  `draft`, `pending_approval` (or `scheduled` when approvals are off), or `scheduled` via
+  "Approve & schedule" (manager+). "Repeat weekly" creates one copy per week.

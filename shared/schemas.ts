@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { LIBRARY_EXHAUSTED_MODES, ROLES } from './types.js';
+import { CTA_TYPES, LIBRARY_EXHAUSTED_MODES, POST_SUMMARY_MAX, ROLES, TOPIC_TYPES } from './types.js';
 
 export const roleSchema = z.enum(ROLES);
 
@@ -103,3 +103,92 @@ export const paginationQuerySchema = z.object({
   page: intFromQuery(1, 100000, 1),
   pageSize: intFromQuery(1, 200, 25),
 });
+
+// ---------------------------------------------------------------------------------------------
+// Uploads
+// ---------------------------------------------------------------------------------------------
+export const UPLOAD_MAX_BYTES = 15 * 1024 * 1024;
+export const UPLOAD_ACCEPT = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+
+export const uploadSignSchema = z.object({
+  filename: z.string().trim().min(1).max(255),
+  contentType: z.string().max(100).optional().default(''),
+  size: z.number().int().positive().max(UPLOAD_MAX_BYTES, 'Images must be 15 MB or smaller.'),
+});
+
+export const uploadCompleteSchema = z.object({
+  path: z.string().regex(/^incoming\/[\w-]+\/[\w.-]+$/, 'Invalid upload path.'),
+});
+
+// ---------------------------------------------------------------------------------------------
+// AI
+// ---------------------------------------------------------------------------------------------
+export const AI_MAX_LOCATIONS_PER_REQUEST = 40;
+
+export const aiVariationsSchema = z.object({
+  brief: z.string().trim().min(10, 'Describe the post in at least a few words.').max(4000),
+  topicType: z.enum(TOPIC_TYPES).default('STANDARD'),
+  tone: z.string().trim().max(200).default('friendly and professional'),
+  ctaType: z.enum(CTA_TYPES).nullable().default(null),
+  locationIds: z.array(uuidSchema).min(1).max(AI_MAX_LOCATIONS_PER_REQUEST),
+  avoid: z.array(z.string().max(1500)).max(10).optional(),
+});
+export type AiVariationsInput = z.input<typeof aiVariationsSchema>;
+
+// ---------------------------------------------------------------------------------------------
+// Posts
+// ---------------------------------------------------------------------------------------------
+const isoDateTime = z.string().datetime({ offset: true });
+
+/** One post as submitted by the compose wizard (and, later, imports). */
+export const postDraftSchema = z
+  .object({
+    location_id: uuidSchema,
+    connection_id: uuidSchema,
+    topic_type: z.enum(TOPIC_TYPES).default('STANDARD'),
+    summary: z.string().trim().max(POST_SUMMARY_MAX, `Posts are limited to ${POST_SUMMARY_MAX} characters.`),
+    cta_type: z.enum(CTA_TYPES).nullable().default(null),
+    cta_url: optionalUrl,
+    image_source: z.enum(['upload', 'library', 'none', 'auto']).default('auto'),
+    media_url: z.string().url().nullable().optional().default(null),
+    media_path: z.string().max(500).nullable().optional().default(null),
+    image_library_id: uuidSchema.nullable().optional().default(null),
+    event_title: optionalText(58),
+    event_start: isoDateTime.nullable().optional().default(null),
+    event_end: isoDateTime.nullable().optional().default(null),
+    offer_coupon_code: optionalText(58),
+    offer_redeem_url: optionalUrl,
+    offer_terms: optionalText(5000),
+    scheduled_at: isoDateTime.nullable().default(null),
+  })
+  .superRefine((p, ctx) => {
+    const issue = (path: string, message: string) => ctx.addIssue({ code: 'custom', path: [path], message });
+    if (!p.summary && p.topic_type === 'STANDARD') issue('summary', 'Write the post text.');
+    if (p.image_source === 'upload' && !p.media_url) issue('media_url', 'Upload an image or choose another image option.');
+    if (p.image_source === 'library' && !p.image_library_id) issue('image_library_id', 'Pick a library image.');
+    if (p.topic_type !== 'STANDARD') {
+      if (!p.event_title) issue('event_title', 'Add a title.');
+      if (!p.event_start || !p.event_end) issue('event_start', 'Add a start and end date.');
+      else if (new Date(p.event_end) < new Date(p.event_start)) issue('event_end', 'The end must be after the start.');
+    }
+  });
+export type PostDraftInput = z.input<typeof postDraftSchema>;
+export type PostDraft = z.output<typeof postDraftSchema>;
+
+export const POST_SUBMIT_MODES = ['draft', 'submit', 'approve'] as const;
+export type PostSubmitMode = (typeof POST_SUBMIT_MODES)[number];
+
+export const createPostsSchema = z.object({
+  campaign: z
+    .object({
+      name: z.string().trim().min(1).max(200),
+      base_prompt: optionalText(4000),
+    })
+    .nullable()
+    .default(null),
+  mode: z.enum(POST_SUBMIT_MODES).default('submit'),
+  /** Creates N weekly copies (week 0 included). */
+  repeatWeeks: z.number().int().min(1).max(52).default(1),
+  posts: z.array(postDraftSchema).min(1).max(500),
+});
+export type CreatePostsInput = z.input<typeof createPostsSchema>;

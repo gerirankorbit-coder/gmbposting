@@ -17,6 +17,7 @@
   "dependencies": {
     "@clerk/backend": "^3.26.4",
     "@clerk/react": "^6.18.3",
+    "@google/genai": "^2.31.0",
     "@hono/node-server": "^2.1.5",
     "@hookform/resolvers": "^6.0.2",
     "@radix-ui/react-alert-dialog": "^1.2.1",
@@ -38,17 +39,20 @@
     "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
+    "heic-convert": "^2.1.0",
     "hono": "^4.13.14",
     "lucide-react": "^1.63.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.91.0",
     "react-router-dom": "^6.30.6",
+    "sharp": "^0.35.5",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@types/heic-convert": "^2.1.1",
     "@types/node": "^22.20.5",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",

@@ -1,6 +1,7 @@
 export const qk = {
   me: ['me'] as const,
   health: ['health'] as const,
+  settings: ['settings'] as const,
   connections: ['connections'] as const,
   clients: ['clients'] as const,
   client: (id: string) => ['clients', id] as const,
