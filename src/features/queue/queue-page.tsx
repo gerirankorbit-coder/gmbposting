@@ -38,6 +38,7 @@ export function QueuePage() {
   const status = params.get('status') ?? ALL;
   const clientId = params.get('clientId') ?? ALL;
   const locationId = params.get('locationId') ?? '';
+  const importId = params.get('importId') ?? '';
   const fromDate = params.get('from') ?? '';
   const toDate = params.get('to') ?? '';
   const page = Math.max(1, Number(params.get('page') ?? '1') || 1);
@@ -61,6 +62,7 @@ export function QueuePage() {
     status: status === ALL ? undefined : status,
     clientId: clientId === ALL ? undefined : clientId,
     locationId: locationId || undefined,
+    importId: importId || undefined,
     from: fromDate ? zonedWallToUtc(fromDate, '00:00', tz) : undefined,
     to: toDate ? zonedWallToUtc(toDate, '23:59', tz) : undefined,
     search: search || undefined,
@@ -75,7 +77,7 @@ export function QueuePage() {
     placeholderData: keepPreviousData,
   });
   const items = data?.items ?? [];
-  const hasFilters = status !== ALL || clientId !== ALL || !!locationId || !!fromDate || !!toDate || !!search;
+  const hasFilters = status !== ALL || clientId !== ALL || !!locationId || !!importId || !!fromDate || !!toDate || !!search;
 
   return (
     <>

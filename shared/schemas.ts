@@ -286,3 +286,43 @@ export const notificationListQuerySchema = z.object({
   page: intFromQuery(1, 100000, 1),
   pageSize: intFromQuery(1, 100, 20),
 });
+
+// ---------------------------------------------------------------------------------------------
+// Imports
+// ---------------------------------------------------------------------------------------------
+export const importOptionsSchema = z
+  .object({
+    schedule: z.enum(['asap', 'spread']),
+    spreadStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+    spreadEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+    startHour: z.number().int().min(0).max(23),
+    endHour: z.number().int().min(1).max(24),
+  })
+  .refine((o) => o.schedule === 'asap' || (o.spreadStart && o.spreadEnd && o.spreadEnd >= o.spreadStart), {
+    message: 'Choose a valid date range.',
+  })
+  .refine((o) => o.endHour > o.startHour, { message: 'The end hour must be after the start hour.' });
+
+export const createImportSchema = z.object({
+  filename: z.string().trim().min(1).max(255),
+  rows: z.array(z.record(z.string(), z.string().max(5000))).min(1).max(2000),
+});
+
+export const importRowPatchSchema = z.object({
+  location_id: uuidSchema.optional(),
+  gmail: z.string().trim().max(320).optional(),
+  post_content: z.string().max(5000).optional(),
+  schedule_date: z.string().max(40).optional(),
+  schedule_time: z.string().max(40).optional(),
+  image: z.string().max(2000).optional(),
+});
+export type ImportRowPatch = z.input<typeof importRowPatchSchema>;
+
+export const importFilesSchema = z.object({
+  files: z
+    .array(z.object({ filename: z.string().min(1).max(255), path: uploadCompleteSchema.shape.path }))
+    .min(1)
+    .max(5),
+});
+
+export const importCommitSchema = z.object({ mode: z.enum(['submit', 'approve']).default('submit') });

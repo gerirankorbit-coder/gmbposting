@@ -9,6 +9,7 @@ import { aiRoutes } from './routes/ai.js';
 import { clientRoutes } from './routes/clients.js';
 import { connectionRoutes } from './routes/connections.js';
 import { googleCallbackRoutes, googleRoutes } from './routes/google.js';
+import { importRoutes } from './routes/imports.js';
 import { libraryRoutes } from './routes/library.js';
 import { locationRoutes } from './routes/locations.js';
 import { meRoutes } from './routes/me.js';
@@ -87,5 +88,6 @@ app.route('/posts', postRoutes);
 app.route('/settings', settingsRoutes);
 app.route('/library', libraryRoutes);
 app.route('/notifications', notificationRoutes);
+app.route('/imports', importRoutes);
 
 export type AppType = typeof app;

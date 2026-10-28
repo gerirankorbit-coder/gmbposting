@@ -12,6 +12,7 @@ const page = <K extends string, T extends Record<K, React.ComponentType>>(
 
 const DashboardPage = page(() => import('@/features/dashboard/dashboard-page'), 'DashboardPage');
 const ImportPage = page(() => import('@/features/import/import-page'), 'ImportPage');
+const ImportPreviewPage = page(() => import('@/features/import/import-preview-page'), 'ImportPreviewPage');
 const ComposePage = page(() => import('@/features/compose/compose-page'), 'ComposePage');
 const CalendarPage = page(() => import('@/features/calendar/calendar-page'), 'CalendarPage');
 const QueuePage = page(() => import('@/features/queue/queue-page'), 'QueuePage');
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'import', element: <ImportPage /> },
+      { path: 'import/:id', element: <ImportPreviewPage /> },
       { path: 'compose', element: <ComposePage /> },
       { path: 'calendar', element: <CalendarPage /> },
       { path: 'queue', element: <QueuePage /> },

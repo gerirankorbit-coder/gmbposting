@@ -320,3 +320,91 @@ export interface SystemAlertsDTO {
   needsReauth: { id: string; email: string }[];
   emptyLibraries: { id: string; name: string }[];
 }
+
+// ---------------------------------------------------------------------------------------------
+// Imports
+// ---------------------------------------------------------------------------------------------
+export type ImportImageKind = 'auto' | 'url' | 'file' | 'none';
+export type ImportImageStatus = 'ready' | 'pending' | 'failed';
+
+export interface ImportRowResolved {
+  content: string;
+  topic_type: TopicType;
+  cta_type: CtaType | null;
+  cta_url: string | null;
+  /** Explicit schedule from the sheet (UTC ISO), or null to use the import option. */
+  scheduled_at: string | null;
+  event_title: string | null;
+  event_start: string | null;
+  event_end: string | null;
+  coupon_code: string | null;
+  offer_terms: string | null;
+  redeem_url: string | null;
+  image: {
+    kind: ImportImageKind;
+    ref: string | null;
+    status: ImportImageStatus;
+    url: string | null;
+    path: string | null;
+    error?: string | null;
+  };
+  timezone: string | null;
+  location_title: string | null;
+  location_city: string | null;
+  client_name: string | null;
+  gmail: string | null;
+}
+
+export interface ImportCandidate {
+  location_id: string;
+  title: string;
+  city: string | null;
+  score: number;
+}
+
+export interface ImportOptions {
+  schedule: 'asap' | 'spread';
+  spreadStart: string | null;
+  spreadEnd: string | null;
+  startHour: number;
+  endHour: number;
+}
+
+export const DEFAULT_IMPORT_OPTIONS: ImportOptions = { schedule: 'asap', spreadStart: null, spreadEnd: null, startHour: 9, endHour: 18 };
+
+export interface ImportRowDTO {
+  id: string;
+  row_number: number;
+  raw: Record<string, string>;
+  resolved: ImportRowResolved | null;
+  candidates: ImportCandidate[];
+  matched_location_id: string | null;
+  matched_connection_id: string | null;
+  match_confidence: number | null;
+  status: ImportRowStatus;
+  errors: string[];
+  warnings: string[];
+  post_id: string | null;
+  /** Final publish time shown in the preview (explicit or from the import option). */
+  planned_at: string | null;
+}
+
+export interface ImportSummaryDTO {
+  id: string;
+  filename: string;
+  uploaded_by: string | null;
+  total_rows: number;
+  valid_rows: number;
+  error_rows: number;
+  review_rows: number;
+  status: ImportStatus;
+  options: ImportOptions;
+  campaign_id: string | null;
+  created_at: string;
+  pending_images: number;
+}
+
+export interface ImportDetailDTO {
+  import: ImportSummaryDTO;
+  rows: ImportRowDTO[];
+}

@@ -20,4 +20,7 @@ export const qk = {
   notificationsAll: ['notifications'] as const,
   notifications: (params: object) => ['notifications', 'list', params] as const,
   alerts: ['notifications', 'alerts'] as const,
+  importsAll: ['imports'] as const,
+  imports: (page: number) => ['imports', 'list', page] as const,
+  importDetail: (id: string) => ['imports', 'detail', id] as const,
 };
