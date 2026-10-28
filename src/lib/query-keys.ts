@@ -10,4 +10,8 @@ export const qk = {
   locationOptions: ['locations', 'options'] as const,
   location: (id: string) => ['locations', 'detail', id] as const,
   locationPosts: (id: string, page: number) => ['locations', 'posts', id, page] as const,
+  postsAll: ['posts'] as const,
+  posts: (params: object) => ['posts', 'list', params] as const,
+  postCalendar: (params: object) => ['posts', 'calendar', params] as const,
+  post: (id: string) => ['posts', 'detail', id] as const,
 };

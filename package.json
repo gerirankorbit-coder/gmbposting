@@ -17,6 +17,11 @@
   "dependencies": {
     "@clerk/backend": "^3.26.4",
     "@clerk/react": "^6.18.3",
+    "@fullcalendar/core": "^6.1.22",
+    "@fullcalendar/daygrid": "^6.1.22",
+    "@fullcalendar/interaction": "^6.1.22",
+    "@fullcalendar/react": "^6.1.22",
+    "@fullcalendar/timegrid": "^6.1.22",
     "@google/genai": "^2.31.0",
     "@hono/node-server": "^2.1.5",
     "@hookform/resolvers": "^6.0.2",

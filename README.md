@@ -4,7 +4,7 @@ Google Business Profile posting platform for Rank Orbit LLC: connect Gmail accou
 Business Profiles, compose or bulk-import posts, approve them, and publish on schedule through
 the official Google Business Profile APIs.
 
-> Status: **Phases 1–4 (scaffold, database, Google connect + sync, compose + media + AI)** complete. The full setup guide is written in the final phase.
+> Status: **Phases 1–5** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue). The full setup guide is written in the final phase.
 
 ## Stack
 
@@ -74,3 +74,19 @@ reachable.
   the button link from the client's default link or the location's website, and creates posts as
   `draft`, `pending_approval` (or `scheduled` when approvals are off), or `scheduled` via
   "Approve & schedule" (manager+). "Repeat weekly" creates one copy per week.
+
+## Post workflow
+
+| Action | Who | From status → to status |
+| --- | --- | --- |
+| Submit | writer+ | draft → pending_approval (or scheduled when approvals are off) |
+| Approve & schedule | manager+ | pending_approval / draft → scheduled |
+| Send back (with note) | manager+ | pending_approval / scheduled → draft |
+| Edit | writer+ (drafts, pending); manager+ (scheduled, failed) | unchanged |
+| Reschedule / drag on calendar | manager+ | draft, pending, scheduled, failed (failed → scheduled) |
+| Retry now | manager+ | failed → scheduled (attempts reset) |
+| Cancel | manager+ | draft, pending, scheduled, failed → cancelled |
+| Delete from Google | admin | published → cancelled (post removed on Google) |
+| Delete record | writer (own drafts), manager+ | never-published posts only |
+
+Every rule is enforced on the server; the UI only hides actions a role cannot take.

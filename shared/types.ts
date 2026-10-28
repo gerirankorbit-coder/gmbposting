@@ -256,3 +256,14 @@ export interface CreatePostsResult {
   status: PostStatus;
   post_ids: string[];
 }
+
+export interface PostListItemDTO extends PostDTO {
+  location: { id: string; title: string; city: string | null; timezone: string; client: ClientRef | null } | null;
+  connection_email: string | null;
+  campaign: { id: string; name: string } | null;
+}
+
+export interface BulkActionResult {
+  updated: number;
+  skipped: number;
+}

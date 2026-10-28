@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CTA_TYPES, LIBRARY_EXHAUSTED_MODES, POST_SUMMARY_MAX, ROLES, TOPIC_TYPES } from './types.js';
+import { CTA_TYPES, LIBRARY_EXHAUSTED_MODES, POST_STATUSES, POST_SUMMARY_MAX, ROLES, TOPIC_TYPES } from './types.js';
 
 export const roleSchema = z.enum(ROLES);
 
@@ -192,3 +192,55 @@ export const createPostsSchema = z.object({
   posts: z.array(postDraftSchema).min(1).max(500),
 });
 export type CreatePostsInput = z.input<typeof createPostsSchema>;
+
+const csvOrArray = <T extends z.ZodType>(item: T) =>
+  z.preprocess(
+    (v) => (typeof v === 'string' ? v.split(',').filter(Boolean) : v),
+    z.array(item).optional(),
+  );
+
+export const postListQuerySchema = z.object({
+  status: csvOrArray(z.enum(POST_STATUSES)),
+  clientId: uuidSchema.optional(),
+  locationId: uuidSchema.optional(),
+  connectionId: uuidSchema.optional(),
+  campaignId: uuidSchema.optional(),
+  importId: uuidSchema.optional(),
+  from: z.string().datetime({ offset: true }).optional(),
+  to: z.string().datetime({ offset: true }).optional(),
+  search: z.string().trim().max(200).optional(),
+  sort: z.enum(['scheduled_at', 'created_at', 'published_at']).catch('scheduled_at').default('scheduled_at'),
+  dir: z.enum(['asc', 'desc']).catch('desc').default('desc'),
+  page: intFromQuery(1, 100000, 1),
+  pageSize: intFromQuery(1, 500, 25),
+});
+export type PostListQuery = z.input<typeof postListQuerySchema>;
+
+export const calendarQuerySchema = z.object({
+  from: z.string().datetime({ offset: true }),
+  to: z.string().datetime({ offset: true }),
+  clientId: uuidSchema.optional(),
+});
+
+/** Editable fields of an existing post; every key is optional. */
+export const postUpdateSchema = z.object({
+  summary: z.string().trim().max(POST_SUMMARY_MAX).optional(),
+  connection_id: uuidSchema.optional(),
+  cta_type: z.enum(CTA_TYPES).nullable().optional(),
+  cta_url: z.union([z.string().trim().url(), z.literal('')]).nullable().optional(),
+  image_source: z.enum(['upload', 'auto', 'none', 'library', 'branded']).optional(),
+  media_url: z.string().url().nullable().optional(),
+  media_path: z.string().max(500).nullable().optional(),
+  event_title: z.string().trim().max(58).nullable().optional(),
+  event_start: isoDateTime.nullable().optional(),
+  event_end: isoDateTime.nullable().optional(),
+  offer_coupon_code: z.string().trim().max(58).nullable().optional(),
+  offer_redeem_url: z.union([z.string().trim().url(), z.literal('')]).nullable().optional(),
+  offer_terms: z.string().trim().max(5000).nullable().optional(),
+  scheduled_at: isoDateTime.nullable().optional(),
+});
+export type PostUpdate = z.input<typeof postUpdateSchema>;
+
+export const postIdsSchema = z.object({ ids: z.array(uuidSchema).min(1).max(1000) });
+export const rejectPostsSchema = postIdsSchema.extend({ note: z.string().trim().min(1, 'Add a note for the writer.').max(1000) });
+export const reschedulePostSchema = z.object({ scheduled_at: isoDateTime });
