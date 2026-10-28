@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import type { ApiErrorBody, HealthStatus } from '../shared/types.js';
+import { db } from './db/supabase.js';
 import { configSummary, MissingEnvError } from './lib/env.js';
 import { ApiError } from './lib/errors.js';
 import { requireAuth, type AuthEnv } from './middleware/auth.js';
@@ -41,14 +42,22 @@ app.notFound((c) =>
 );
 
 // --- Public routes -------------------------------------------------------------------------
-app.get('/health', (c) => {
+app.get('/health', async (c) => {
+  const config = configSummary();
+  let database: boolean | null = null;
+  if (config.supabase) {
+    const { error } = await db().from('app_settings').select('key').limit(1);
+    database = !error;
+    if (error) console.error('[health] database check failed:', error.message);
+  }
   const body: HealthStatus = {
-    ok: true,
+    ok: database !== false,
     time: new Date().toISOString(),
     version: VERSION,
-    config: configSummary(),
+    config,
+    database,
   };
-  return c.json(body);
+  return c.json(body, database === false ? 503 : 200);
 });
 
 // --- Authenticated routes ------------------------------------------------------------------

@@ -4,7 +4,7 @@ Google Business Profile posting platform for Rank Orbit LLC: connect Gmail accou
 Business Profiles, compose or bulk-import posts, approve them, and publish on schedule through
 the official Google Business Profile APIs.
 
-> Status: **Phase 1 (scaffold)** complete. The full setup guide is written in the final phase.
+> Status: **Phases 1–2 (scaffold, database)** complete. The full setup guide is written in the final phase.
 
 ## Stack
 
@@ -36,3 +36,11 @@ Or run `vercel dev` to serve the SPA and the real serverless function together.
 All API endpoints live in one function. `vercel.json` rewrites `/api/:path*` to
 `api/[[...route]].ts`, because outside Next.js Vercel treats the optional catch-all filename as a
 single path segment; without the rewrite, nested paths such as `/api/cron/publish` would 404.
+
+## Database
+
+`supabase/migrations/001_init.sql` creates every table, index, `updated_at` trigger, the
+service-role-only RPCs (`claim_due_posts`, `pick_library_image`, `library_stock`) and the public
+`post-media` storage bucket. RLS is enabled on every table with no policies, so only the server's
+service-role key can read or write data. `GET /api/health` reports whether the database is
+reachable.
