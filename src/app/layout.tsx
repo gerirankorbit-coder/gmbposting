@@ -5,6 +5,7 @@ import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { Navbar } from '@/components/layout/navbar';
 import { NewPostFab } from '@/components/layout/new-post-fab';
 import { PageSkeleton } from '@/components/page-skeleton';
+import { useSystemAlerts } from './system-alerts';
 
 function FullScreenLoader() {
   return (
@@ -25,11 +26,22 @@ export function AppLayout() {
     return <Navigate to={`/sign-in?redirect_url=${redirect}`} replace />;
   }
 
+  return <SignedInShell />;
+}
+
+function SignedInShell() {
+  const alerts = useSystemAlerts();
   return (
-    <div className="flex min-h-screen flex-col">
-      <AnnouncementBar alerts={[]} />
+    <div className="flex min-h-screen flex-col overflow-x-clip">
+      <a
+        href="#main"
+        className="sr-only z-50 rounded-full bg-white px-4 py-2 text-sm font-semibold text-orbit-primary shadow-glow focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        Skip to content
+      </a>
+      <AnnouncementBar alerts={alerts} />
       <Navbar />
-      <main id="main" className="container flex-1 pb-28 pt-8 sm:pt-10">
+      <main id="main" tabIndex={-1} className="container flex-1 pb-28 pt-8 focus:outline-none sm:pt-10">
         <Suspense fallback={<PageSkeleton />}>
           <Outlet />
         </Suspense>

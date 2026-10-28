@@ -33,6 +33,12 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    /* Decorative orbit lines and bubbles bleed past the edges; never allow sideways scroll. */
+    overflow-x: clip;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -106,5 +112,91 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* FullCalendar theme */
+.orbit-calendar .fc {
+  --fc-border-color: #ece6ff;
+  --fc-today-bg-color: rgba(139, 44, 245, 0.06);
+  --fc-neighbor-day-bg-color: transparent;
+  --fc-page-bg-color: transparent;
+  --fc-event-bg-color: transparent;
+  --fc-event-border-color: transparent;
+  --fc-now-indicator-color: #d946ef;
+  font-size: 0.875rem;
+}
+.orbit-calendar .fc .fc-toolbar {
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.orbit-calendar .fc .fc-toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0b0b14;
+}
+.orbit-calendar .fc .fc-button {
+  border-radius: 9999px;
+  border: 1px solid #e9e1ff;
+  background: rgba(255, 255, 255, 0.85);
+  color: #3f3f52;
+  font-weight: 600;
+  text-transform: none;
+  padding: 0.4rem 0.9rem;
+  box-shadow: none;
+}
+.orbit-calendar .fc .fc-button:hover {
+  border-color: rgba(139, 44, 245, 0.4);
+  color: #8b2cf5;
+  background: #fff;
+}
+.orbit-calendar .fc .fc-button-primary:not(:disabled).fc-button-active,
+.orbit-calendar .fc .fc-button-primary:not(:disabled):active {
+  background: linear-gradient(90deg, #7c3aed 0%, #a21caf 60%, #d946ef 100%);
+  border-color: transparent;
+  color: #fff;
+}
+.orbit-calendar .fc .fc-button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(139, 44, 245, 0.35);
+}
+.orbit-calendar .fc .fc-button-group > .fc-button {
+  margin-left: 0.25rem;
+  border-radius: 9999px;
+}
+.orbit-calendar .fc .fc-col-header-cell-cushion {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b6b80;
+  padding: 0.5rem 0;
+}
+.orbit-calendar .fc .fc-daygrid-day-number {
+  font-weight: 600;
+  color: #3f3f52;
+}
+.orbit-calendar .fc .fc-scrollgrid {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.orbit-calendar .fc .fc-daygrid-event,
+.orbit-calendar .fc .fc-timegrid-event {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.orbit-calendar .fc .fc-daygrid-more-link {
+  font-weight: 600;
+  color: #8b2cf5;
+}
+@media (max-width: 640px) {
+  .orbit-calendar .fc .fc-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .orbit-calendar .fc .fc-toolbar-chunk {
+    display: flex;
+    justify-content: center;
   }
 }
