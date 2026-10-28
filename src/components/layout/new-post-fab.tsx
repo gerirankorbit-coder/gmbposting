@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 
-/** Fixed bottom-right gradient action button. Hidden on the compose page itself. */
+/** Fixed bottom-right gradient action button. Hidden where a page has its own bottom action bar. */
 export function NewPostFab() {
   const { pathname } = useLocation();
-  if (pathname.startsWith('/compose')) return null;
+  if (pathname.startsWith('/compose') || /^\/import\/.+/.test(pathname)) return null;
   return (
     <Link
       to="/compose"

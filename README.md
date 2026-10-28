@@ -4,7 +4,7 @@ Google Business Profile posting platform for Rank Orbit LLC: connect Gmail accou
 Business Profiles, compose or bulk-import posts, approve them, and publish on schedule through
 the official Google Business Profile APIs.
 
-> Status: **Phases 1–6** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue, image library + branded graphics + notifications). The full setup guide is written in the final phase.
+> Status: **Phases 1–7** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue, image library + branded graphics + notifications, spreadsheet import). The full setup guide is written in the final phase.
 
 ## Stack
 
@@ -111,3 +111,19 @@ Every rule is enforced on the server; the UI only hides actions a role cannot ta
   `library_low`, `library_empty`, then `library_refilled` when images are added.
 - **Email**: when `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL` and `NOTIFY_TO_EMAILS` are set, low/empty
   library, reconnect and final post-failure alerts are emailed as one digest at most once an hour.
+
+## Spreadsheet import
+
+- Download the template on the Import page (`orbitpost-template.xlsx`: a `Posts` sheet and an
+  `Instructions` sheet). Header names are case-insensitive and common aliases work.
+- The browser parses XLSX/CSV with SheetJS; the server matches each row: Gmail → connected
+  account, then `location_id` or the business name (normalised exact match, then fuzzy match,
+  `city` breaks ties) among locations that Gmail can manage.
+- Image URLs are downloaded server-side in time-boxed batches (Drive/Dropbox share links are
+  converted; private network addresses are refused). Filenames are matched to images uploaded
+  with the sheet. Failed images fall back to Auto.
+- Rows without a date publish ASAP or are spread across a date range (09:00–18:00 by default, in
+  each location's time zone, at most one post per location per day).
+- **SheetJS source:** the spec asks for the official build from `cdn.sheetjs.com`. That host was
+  blocked in the build environment, so `xlsx@0.18.5` from npm is installed for now. Switch with:
+  `npm i https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz` (same API, no code changes).
