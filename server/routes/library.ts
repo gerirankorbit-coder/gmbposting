@@ -43,7 +43,7 @@ function assertOwnUpload(path: string, userId: string) {
 }
 
 /** Builds stock DTOs, projecting the run-out date from upcoming auto-image posts. */
-async function stockFor(clients: (ClientRow & { locations?: unknown })[]): Promise<ClientStockDTO[]> {
+export async function stockFor(clients: (ClientRow & { locations?: unknown })[]): Promise<ClientStockDTO[]> {
   if (!clients.length) return [];
   const stock = unwrap(await db().rpc('library_stock', { p_client_id: null }), 'Library stock');
   const byClient = new Map(stock.map((s) => [s.client_id, s]));

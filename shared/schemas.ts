@@ -326,3 +326,21 @@ export const importFilesSchema = z.object({
 });
 
 export const importCommitSchema = z.object({ mode: z.enum(['submit', 'approve']).default('submit') });
+
+export const settingsUpdateSchema = z.object({
+  approval_required: z.boolean().optional(),
+  max_posts_per_run: z.number().int().min(1).max(50).optional(),
+  publish_spacing_seconds: z.number().int().min(0).max(30).optional(),
+  default_timezone: timeZoneSchema.optional(),
+});
+export type SettingsUpdate = z.input<typeof settingsUpdateSchema>;
+
+export const roleUpdateSchema = z.object({ role: roleSchema });
+
+export const activityQuerySchema = z.object({
+  entityType: z.string().max(40).optional(),
+  actor: z.string().max(100).optional(),
+  search: z.string().trim().max(100).optional(),
+  page: intFromQuery(1, 100000, 1),
+  pageSize: intFromQuery(1, 100, 25),
+});

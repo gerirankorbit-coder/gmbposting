@@ -417,3 +417,40 @@ export interface PublisherSummary {
   started_at: string;
   duration_ms: number;
 }
+
+export interface ActivityDTO {
+  id: string;
+  actor: string;
+  actor_name: string;
+  action: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface TeamMemberDTO {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image_url: string | null;
+  role: Role;
+  last_sign_in_at: string | null;
+}
+
+export interface DashboardDTO {
+  stats: {
+    connections: number;
+    connections_needing_reauth: number;
+    locations: number;
+    scheduled_this_week: number;
+    published_this_month: number;
+    failed: number;
+    pending_approval: number;
+  };
+  upcoming: PostListItemDTO[];
+  stale_locations: { id: string; title: string; city: string | null; last_post_at: string | null; client: ClientRef | null }[];
+  stale_count: number;
+  image_stock: ClientStockDTO[];
+  activity: ActivityDTO[];
+}

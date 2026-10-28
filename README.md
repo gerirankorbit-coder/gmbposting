@@ -4,7 +4,7 @@ Google Business Profile posting platform for Rank Orbit LLC: connect Gmail accou
 Business Profiles, compose or bulk-import posts, approve them, and publish on schedule through
 the official Google Business Profile APIs.
 
-> Status: **Phases 1–8** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue, image library + branded graphics + notifications, spreadsheet import, publisher). The full setup guide is written in the final phase.
+> Status: **Phases 1–9** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue, image library + branded graphics + notifications, spreadsheet import, publisher, dashboard/activity/settings/roles). The full setup guide is written in the final phase.
 
 ## Stack
 
