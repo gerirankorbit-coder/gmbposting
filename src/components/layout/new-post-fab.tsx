@@ -8,12 +8,13 @@ export function NewPostFab() {
   return (
     <Link
       to="/compose"
-      className="fixed bottom-5 right-5 z-30 inline-flex h-14 items-center gap-2 rounded-full bg-orbit-gradient pl-4 pr-5 text-sm font-bold text-white shadow-glow transition hover:shadow-glow-strong hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orbit-primary/60 focus-visible:ring-offset-2 sm:bottom-8 sm:right-8"
+      aria-label="New Post"
+      className="fixed bottom-5 right-5 z-30 inline-flex h-14 items-center gap-2 rounded-full bg-orbit-gradient px-3 text-sm sm:pl-4 sm:pr-5 font-bold text-white shadow-glow transition hover:shadow-glow-strong hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orbit-primary/60 focus-visible:ring-offset-2 sm:bottom-8 sm:right-8"
     >
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-orbit-primary">
         <Plus className="h-4 w-4" aria-hidden />
       </span>
-      New Post
+      <span className="hidden sm:inline">New Post</span>
     </Link>
   );
 }

@@ -4,7 +4,7 @@ Google Business Profile posting platform for Rank Orbit LLC: connect Gmail accou
 Business Profiles, compose or bulk-import posts, approve them, and publish on schedule through
 the official Google Business Profile APIs.
 
-> Status: **Phases 1–2 (scaffold, database)** complete. The full setup guide is written in the final phase.
+> Status: **Phases 1–3 (scaffold, database, Google connect + sync)** complete. The full setup guide is written in the final phase.
 
 ## Stack
 
@@ -44,3 +44,17 @@ service-role-only RPCs (`claim_due_posts`, `pick_library_image`, `library_stock`
 `post-media` storage bucket. RLS is enabled on every table with no policies, so only the server's
 service-role key can read or write data. `GET /api/health` reports whether the database is
 reachable.
+
+## Google connect and sync
+
+- `POST /api/google/connect` (admin) returns the Google consent URL; the browser navigates to it.
+- `GET /api/google/callback` is public and protected by an HMAC-signed, 10-minute `state`. It
+  exchanges the code, stores AES-256-GCM-encrypted tokens, reuses the existing row when the same
+  Google account reconnects, then redirects to `/connections`, which starts the first sync.
+- `POST /api/connections/:id/sync` lists accounts and locations, upserts `locations` and
+  `location_access`, auto-creates a client per new location (reusing a client with the same name),
+  and removes access rows that were not seen (only when every account listed successfully).
+- All Google calls go through `server/google/client.ts`: token refresh within 2 minutes of expiry,
+  one forced refresh on 401, backoff on 429/5xx (1s, 2s, 4s), a per-instance throttle well under the
+  300 requests/minute quota, and `invalid_grant` marks the connection `needs_reauth` and notifies
+  the team.

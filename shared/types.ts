@@ -97,3 +97,137 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 };
 
 export const POST_SUMMARY_MAX = 1500;
+
+// ---------------------------------------------------------------------------------------------
+// API DTOs
+// ---------------------------------------------------------------------------------------------
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ConnectionDTO {
+  id: string;
+  email: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  status: ConnectionStatus;
+  last_synced_at: string | null;
+  last_error: string | null;
+  created_at: string;
+  account_count: number;
+  location_count: number;
+}
+
+export interface SyncResultDTO {
+  connectionId: string;
+  email: string;
+  accounts: number;
+  locations: number;
+  newLocations: number;
+  newClients: number;
+  removedAccess: number;
+  complete: boolean;
+  errors: string[];
+}
+
+export interface ClientDTO {
+  id: string;
+  name: string;
+  color: string;
+  is_active: boolean;
+  brand_voice: string | null;
+  default_cta_url: string | null;
+  notes: string | null;
+  logo_url: string | null;
+  brand_primary: string | null;
+  brand_secondary: string | null;
+  brand_text_color: string | null;
+  tagline: string | null;
+  preferred_templates: BrandedTemplate[];
+  on_library_exhausted: LibraryExhaustedMode;
+  low_stock_threshold: number | null;
+  stock_state: StockState;
+  location_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientRef {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface LocationAccessDTO {
+  connection_id: string;
+  account_name: string;
+  role: string | null;
+  email: string;
+  status: ConnectionStatus;
+}
+
+export interface LocationDTO {
+  id: string;
+  location_name: string;
+  title: string;
+  address_text: string | null;
+  city: string | null;
+  service_area_text: string | null;
+  primary_category: string | null;
+  website_uri: string | null;
+  maps_uri: string | null;
+  place_id: string | null;
+  timezone: string;
+  is_active: boolean;
+  last_post_at: string | null;
+  synced_at: string | null;
+  default_connection_id: string | null;
+  client: ClientRef | null;
+  access: LocationAccessDTO[];
+}
+
+export interface PostDTO {
+  id: string;
+  campaign_id: string | null;
+  import_id: string | null;
+  location_id: string;
+  connection_id: string | null;
+  account_name: string | null;
+  image_source: ImageSource;
+  image_library_id: string | null;
+  branded_template: string | null;
+  topic_type: TopicType;
+  summary: string;
+  cta_type: CtaType | null;
+  cta_url: string | null;
+  media_url: string | null;
+  event_title: string | null;
+  event_start: string | null;
+  event_end: string | null;
+  offer_coupon_code: string | null;
+  offer_redeem_url: string | null;
+  offer_terms: string | null;
+  status: PostStatus;
+  scheduled_at: string | null;
+  published_at: string | null;
+  google_post_name: string | null;
+  google_search_url: string | null;
+  attempts: number;
+  next_attempt_at: string | null;
+  last_error: string | null;
+  review_note: string | null;
+  created_by: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HistoryImportResult {
+  found: number;
+  imported: number;
+  skipped: number;
+}

@@ -33,6 +33,12 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    /* Decorative orbit lines and bubbles bleed past the edges; never allow sideways scroll. */
+    overflow-x: clip;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

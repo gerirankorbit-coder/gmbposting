@@ -19,22 +19,22 @@ export function dbError(error: PostgrestError, context?: string): ApiError {
   }
 }
 
-type Result<T> = { data: T; error: PostgrestError | null };
+type Result = { data: unknown; error: PostgrestError | null };
 
-/**
- * Returns `data` or throws a mapped ApiError. On success PostgREST list/insert-select data is
- * never null, so the result is narrowed accordingly.
- */
-export function unwrap<T>(result: Result<T>, context?: string): NonNullable<T> {
+/** List results are never null on success; single-row (`maybeSingle`) results keep `null`. */
+type Unwrapped<D> = [NonNullable<D>] extends [unknown[]] ? NonNullable<D> : D;
+
+/** Returns `data` or throws a mapped ApiError. */
+export function unwrap<R extends Result>(result: R, context?: string): Unwrapped<R['data']> {
   if (result.error) throw dbError(result.error, context);
-  return result.data as NonNullable<T>;
+  return result.data as Unwrapped<R['data']>;
 }
 
 /** Like `unwrap` for `.maybeSingle()` queries, throwing 404 when the row is missing. */
-export function unwrapOne<T>(result: Result<T | null>, what = 'Record'): NonNullable<T> {
+export function unwrapOne<R extends Result>(result: R, what = 'Record'): NonNullable<R['data']> {
   if (result.error) throw dbError(result.error, what);
   if (result.data === null || result.data === undefined) throw notFound(`${what} not found.`);
-  return result.data as NonNullable<T>;
+  return result.data as NonNullable<R['data']>;
 }
 
 /** True for Postgres unique-violation errors (used for insert-or-ignore flows). */

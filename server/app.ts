@@ -5,6 +5,10 @@ import { db } from './db/supabase.js';
 import { configSummary, MissingEnvError } from './lib/env.js';
 import { ApiError } from './lib/errors.js';
 import { requireAuth, type AuthEnv } from './middleware/auth.js';
+import { clientRoutes } from './routes/clients.js';
+import { connectionRoutes } from './routes/connections.js';
+import { googleCallbackRoutes, googleRoutes } from './routes/google.js';
+import { locationRoutes } from './routes/locations.js';
 import { meRoutes } from './routes/me.js';
 
 const VERSION = '0.1.0';
@@ -60,10 +64,16 @@ app.get('/health', async (c) => {
   return c.json(body, database === false ? 503 : 200);
 });
 
+// Google OAuth callback: public, protected by the HMAC-signed state parameter.
+app.route('/google', googleCallbackRoutes);
+
 // --- Authenticated routes ------------------------------------------------------------------
-// Everything below requires a valid Clerk session. Public exceptions (Google OAuth callback,
-// cron publisher) are registered above this line in later phases.
+// Everything below requires a valid Clerk session. Public routes must be registered above.
 app.use('*', requireAuth);
 app.route('/me', meRoutes);
+app.route('/google', googleRoutes);
+app.route('/connections', connectionRoutes);
+app.route('/locations', locationRoutes);
+app.route('/clients', clientRoutes);
 
 export type AppType = typeof app;

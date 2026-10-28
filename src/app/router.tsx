@@ -5,9 +5,9 @@ import { NotFoundPage } from '@/features/misc/not-found-page';
 import { AppLayout } from './layout';
 import { RoleGate } from './role-gate';
 
-const page = <T extends Record<string, React.ComponentType>>(
+const page = <K extends string, T extends Record<K, React.ComponentType>>(
   loader: () => Promise<T>,
-  name: keyof T,
+  name: K,
 ) => lazy(() => loader().then((m) => ({ default: m[name] })));
 
 const DashboardPage = page(() => import('@/features/dashboard/dashboard-page'), 'DashboardPage');
@@ -18,6 +18,10 @@ const QueuePage = page(() => import('@/features/queue/queue-page'), 'QueuePage')
 const ApprovalsPage = page(() => import('@/features/approvals/approvals-page'), 'ApprovalsPage');
 const LibraryPage = page(() => import('@/features/library/library-page'), 'LibraryPage');
 const LocationsPage = page(() => import('@/features/locations/locations-page'), 'LocationsPage');
+const LocationDetailPage = page(
+  () => import('@/features/locations/location-detail-page'),
+  'LocationDetailPage',
+);
 const ConnectionsPage = page(
   () => import('@/features/connections/connections-page'),
   'ConnectionsPage',
@@ -50,6 +54,7 @@ export const router = createBrowserRouter([
       },
       { path: 'library', element: <LibraryPage /> },
       { path: 'locations', element: <LocationsPage /> },
+      { path: 'locations/:id', element: <LocationDetailPage /> },
       { path: 'connections', element: <ConnectionsPage /> },
       { path: 'clients', element: <ClientsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
