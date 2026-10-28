@@ -117,7 +117,7 @@ export function ClientsPage() {
                     {c.logo_url ? <img src={c.logo_url} alt="" className="h-full w-full rounded-2xl bg-white object-contain p-1" /> : c.name[0]?.toUpperCase()}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-lg">{c.name}</h3>
+                    <h3 className="wrap-anywhere text-lg">{c.name}</h3>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
                       <Badge variant="outline">
                         <MapPin className="h-3 w-3" aria-hidden /> {pluralize(c.location_count, 'location')}
@@ -159,9 +159,9 @@ export function ClientsPage() {
                   {c.brand_voice || <span className="italic">No brand voice yet.</span>}
                 </p>
                 {c.default_cta_url && (
-                  <p className="mt-3 flex items-center gap-1.5 truncate text-xs text-orbit-body">
+                  <p className="mt-3 flex items-center gap-1.5 wrap-anywhere text-xs text-orbit-body">
                     <LinkIcon className="h-3 w-3 shrink-0" aria-hidden />
-                    <span className="truncate">{c.default_cta_url.replace(/^https?:\/\//, '')}</span>
+                    <span className="wrap-anywhere">{c.default_cta_url.replace(/^https?:\/\//, '')}</span>
                   </p>
                 )}
                 <Button asChild variant="link" size="sm" className="mt-3 h-auto self-start px-0">

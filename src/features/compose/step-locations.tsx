@@ -107,8 +107,8 @@ export function StepLocations({
               >
                 <Checkbox checked={selected.has(l.id)} onCheckedChange={() => toggle(l.id)} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-orbit-heading">{l.title}</span>
-                  <span className="block truncate text-xs text-orbit-muted">{[l.city, l.primary_category].filter(Boolean).join(' · ') || '—'}</span>
+                  <span className="block wrap-anywhere text-sm font-semibold text-orbit-heading">{l.title}</span>
+                  <span className="block wrap-anywhere text-xs text-orbit-muted">{[l.city, l.primary_category].filter(Boolean).join(' · ') || '—'}</span>
                 </span>
                 <ClientDot client={l.client} className="hidden max-w-[140px] text-xs sm:inline-flex" />
               </label>
@@ -139,8 +139,8 @@ export function StepLocations({
               return (
                 <li key={id} className="flex flex-col gap-2 rounded-2xl border border-orbit-line bg-white/70 p-3 sm:flex-row sm:items-center">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-orbit-heading">{loc.title}</p>
-                    <p className="truncate text-xs text-orbit-muted">{loc.city ?? loc.timezone}</p>
+                    <p className="wrap-anywhere text-sm font-bold text-orbit-heading">{loc.title}</p>
+                    <p className="wrap-anywhere text-xs text-orbit-muted">{loc.city ?? loc.timezone}</p>
                   </div>
                   <Select
                     value={state.connections[id] ?? ''}

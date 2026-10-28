@@ -1,4 +1,5 @@
 import type { GoogleClient } from './client.js';
+import { guessTimeZone } from './timezone.js';
 
 const BASE = 'https://mybusinessbusinessinformation.googleapis.com/v1';
 const READ_MASK = 'name,title,storefrontAddress,serviceArea,websiteUri,categories,metadata';
@@ -71,4 +72,15 @@ export function normalizeLocation(loc: GbpLocation): NormalizedLocation {
     maps_uri: loc.metadata?.mapsUri ?? null,
     place_id: loc.metadata?.placeId ?? null,
   };
+}
+
+/** Best guess of a location's IANA time zone from its address or service area (null if unknown). */
+export function guessLocationTimeZone(loc: GbpLocation, addressText: string | null): string | null {
+  return guessTimeZone({
+    regionCode: loc.storefrontAddress?.regionCode,
+    administrativeArea: loc.storefrontAddress?.administrativeArea,
+    serviceAreaRegionCode: loc.serviceArea?.regionCode,
+    servicePlaces: loc.serviceArea?.places?.placeInfos?.map((p) => p.placeName),
+    addressText,
+  });
 }

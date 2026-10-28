@@ -156,7 +156,7 @@ export function LocationDetailPage() {
                   {loc.access.map((a) => (
                     <li key={a.connection_id} className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-orbit-heading">{a.email}</p>
+                        <p className="wrap-anywhere text-sm font-semibold text-orbit-heading">{a.email}</p>
                         <p className="text-xs text-orbit-muted">
                           {a.role?.replace(/_/g, ' ').toLowerCase() ?? 'access'} · {a.account_name}
                         </p>
@@ -206,7 +206,7 @@ export function LocationDetailPage() {
                     {posts.data.items.map((p) => (
                       <TableRow key={p.id}>
                         <TableCell className="max-w-md">
-                          <div className="flex items-start gap-3">
+                          <div className="flex min-w-[240px] items-start gap-3">
                             {p.media_url ? (
                               <img src={p.media_url} alt="" className="h-12 w-12 shrink-0 rounded-xl object-cover" loading="lazy" />
                             ) : (
@@ -217,7 +217,7 @@ export function LocationDetailPage() {
                             <div className="min-w-0">
                               <p className="text-xs font-bold uppercase tracking-wide text-orbit-muted">{TOPIC_LABEL[p.topic_type]}</p>
                               <p className="line-clamp-2 text-sm text-orbit-body">{p.summary || p.event_title || '—'}</p>
-                              {p.last_error && <p className="mt-0.5 line-clamp-1 text-xs text-rose-600">{p.last_error}</p>}
+                              {p.last_error && <p className="mt-0.5 wrap-anywhere text-xs text-rose-600">{p.last_error}</p>}
                             </div>
                           </div>
                         </TableCell>

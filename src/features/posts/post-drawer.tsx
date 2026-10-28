@@ -101,7 +101,7 @@ export function PostDrawer({
             <ClientDot client={post.location?.client ?? null} />
           </dd>
           <dt className="text-orbit-muted">Publish with</dt>
-          <dd className="truncate text-orbit-heading">{post.connection_email ?? '—'}</dd>
+          <dd className="wrap-anywhere text-orbit-heading">{post.connection_email ?? '—'}</dd>
           <dt className="text-orbit-muted">Scheduled</dt>
           <dd>
             <ZonedTime iso={post.scheduled_at} timeZone={tz} />
@@ -119,7 +119,7 @@ export function PostDrawer({
           {post.cta_url && (
             <>
               <dt className="text-orbit-muted">Button link</dt>
-              <dd className="truncate">
+              <dd className="wrap-anywhere">
                 <a href={post.cta_url} target="_blank" rel="noreferrer" className="text-orbit-primary hover:underline">
                   {post.cta_url}
                 </a>

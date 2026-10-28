@@ -146,7 +146,7 @@ export function ImportPage() {
               {sheet && (
                 <li className="flex items-center gap-3 rounded-2xl border border-orbit-line bg-white/80 px-4 py-3">
                   <FileSpreadsheet className="h-5 w-5 text-emerald-600" aria-hidden />
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-orbit-heading">{sheet.name}</span>
+                  <span className="min-w-0 flex-1 wrap-anywhere text-sm font-semibold text-orbit-heading">{sheet.name}</span>
                   <span className="text-xs text-orbit-muted">{(sheet.size / 1024).toFixed(0)} KB</span>
                   <Button variant="ghost" size="icon-sm" aria-label="Remove spreadsheet" disabled={busy} onClick={() => setSheet(null)}>
                     <X />
@@ -156,7 +156,7 @@ export function ImportPage() {
               {attachments.length > 0 && (
                 <li className="flex items-center gap-3 rounded-2xl border border-orbit-line bg-white/80 px-4 py-3">
                   <ImagePlus className="h-5 w-5 text-orbit-primary" aria-hidden />
-                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-orbit-heading">
+                  <span className="min-w-0 flex-1 wrap-anywhere text-sm font-semibold text-orbit-heading">
                     {pluralize(attachments.length, 'image file')} {attachments.some((f) => /\.zip$/i.test(f.name)) && '(ZIPs are unpacked)'}
                   </span>
                   <Button variant="ghost" size="icon-sm" aria-label="Remove images" disabled={busy} onClick={() => setAttachments([])}>
@@ -236,7 +236,7 @@ export function ImportPage() {
                 {history.data.items.map((i) => (
                   <TableRow key={i.id} className="cursor-pointer" onClick={() => navigate(`/import/${i.id}`)}>
                     <TableCell className="max-w-xs">
-                      <Link to={`/import/${i.id}`} className="block truncate font-semibold text-orbit-heading hover:text-orbit-primary" onClick={(e) => e.stopPropagation()}>
+                      <Link to={`/import/${i.id}`} className="block wrap-anywhere font-semibold text-orbit-heading hover:text-orbit-primary" onClick={(e) => e.stopPropagation()}>
                         {i.filename}
                       </Link>
                     </TableCell>

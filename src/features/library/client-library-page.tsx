@@ -169,7 +169,7 @@ function ImageTile({ image, clientId, canManage }: { image: LibraryImageDTO; cli
         )}
       </div>
       <div className="grid gap-2 p-2.5">
-        <p className="truncate text-xs font-semibold text-orbit-heading" title={image.original_filename ?? undefined}>
+        <p className="wrap-anywhere text-xs font-semibold text-orbit-heading" title={image.original_filename ?? undefined}>
           {image.original_filename ?? 'Image'}
         </p>
         <p className="text-[11px] text-orbit-muted">
@@ -194,8 +194,8 @@ function ImageTile({ image, clientId, canManage }: { image: LibraryImageDTO; cli
             </SelectContent>
           </Select>
         ) : location ? (
-          <p className="flex items-center gap-1 truncate text-[11px] text-orbit-muted">
-            <MapPin className="h-3 w-3" aria-hidden /> Only {location.title}
+          <p className="flex items-start gap-1 wrap-anywhere text-[11px] text-orbit-muted">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0" aria-hidden /> Only {location.title}
           </p>
         ) : null}
         {canManage && (

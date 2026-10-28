@@ -197,8 +197,8 @@ function AccountCell({ connection: c }: { connection: ConnectionDTO }) {
         <AvatarFallback>{initials(c.display_name ?? c.email)}</AvatarFallback>
       </Avatar>
       <div className="min-w-0">
-        <p className="truncate font-bold text-orbit-heading">{c.email}</p>
-        {c.display_name && <p className="truncate text-xs text-orbit-muted">{c.display_name}</p>}
+        <p className="wrap-anywhere font-bold text-orbit-heading">{c.email}</p>
+        {c.display_name && <p className="wrap-anywhere text-xs text-orbit-muted">{c.display_name}</p>}
         {c.last_error && (
           <p className="mt-0.5 line-clamp-2 max-w-md text-xs text-rose-600" title={c.last_error}>
             {c.last_error}

@@ -199,8 +199,8 @@ export function StepContent({
                 <li key={id} className="rounded-3xl border border-orbit-line bg-white/70 p-4">
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-orbit-heading">{loc?.title}</p>
-                      <p className="truncate text-xs text-orbit-muted">{[loc?.city, loc?.primary_category].filter(Boolean).join(' · ')}</p>
+                      <p className="wrap-anywhere text-sm font-bold text-orbit-heading">{loc?.title}</p>
+                      <p className="wrap-anywhere text-xs text-orbit-muted">{[loc?.city, loc?.primary_category].filter(Boolean).join(' · ')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <CharCounter length={text.length} />

@@ -45,7 +45,7 @@ function StatCard({ label, value, icon: Icon, to, tone, hint }: { label: string;
       <div className="min-w-0">
         <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-orbit-muted">{label}</p>
         <p className="text-3xl font-extrabold tracking-tightest text-orbit-heading">{value.toLocaleString()}</p>
-        {hint && <p className="truncate text-xs text-orbit-muted">{hint}</p>}
+        {hint && <p className="wrap-anywhere text-xs text-orbit-muted">{hint}</p>}
       </div>
     </Link>
   );
@@ -145,8 +145,8 @@ export function DashboardPage() {
                     <button type="button" onClick={() => ui.openDrawer(p)} className="flex w-full items-center gap-3 rounded-xl py-3 text-left transition hover:bg-orbit-primary/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orbit-primary/60">
                       <PostThumb post={p} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-orbit-heading">{p.location?.title}</p>
-                        <p className="truncate text-xs text-orbit-muted">{p.summary || p.event_title}</p>
+                        <p className="wrap-anywhere text-sm font-bold text-orbit-heading">{p.location?.title}</p>
+                        <p className="line-clamp-2 text-xs text-orbit-muted">{p.summary || p.event_title}</p>
                       </div>
                       <div className="hidden text-right sm:block">
                         <PostStatusBadge status={p.status} />
@@ -183,7 +183,7 @@ export function DashboardPage() {
                     <ClientAvatar client={st.client} size={36} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <Link to={`/library/${st.client.id}`} className="truncate text-sm font-bold text-orbit-heading hover:text-orbit-primary">
+                        <Link to={`/library/${st.client.id}`} className="min-w-0 wrap-anywhere text-sm font-bold text-orbit-heading hover:text-orbit-primary">
                           {st.client.name}
                         </Link>
                         <Badge variant={STOCK_BADGE[st.state]}>{st.unused} left</Badge>
@@ -227,10 +227,10 @@ export function DashboardPage() {
                 {data.stale_locations.map((l) => (
                   <li key={l.id} className="flex items-center gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/50 p-3">
                     <div className="min-w-0 flex-1">
-                      <Link to={`/locations/${l.id}`} className="block truncate text-sm font-bold text-orbit-heading hover:text-orbit-primary">
+                      <Link to={`/locations/${l.id}`} className="block wrap-anywhere text-sm font-bold text-orbit-heading hover:text-orbit-primary">
                         {l.title}
                       </Link>
-                      <p className="flex items-center gap-2 text-xs text-orbit-muted">
+                      <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-orbit-muted">
                         <ClientDot client={l.client} className="text-xs font-medium" />
                         <span>{l.last_post_at ? `${daysSince(l.last_post_at)}d ago` : 'never posted'}</span>
                       </p>

@@ -47,8 +47,8 @@ export function LocationCombobox({
             {options.map((l) => (
               <CommandItem key={l.id} value={`${l.title} ${l.city ?? ''} ${l.id}`} onSelect={() => { onChange(l.id); setOpen(false); }}>
                 <Check className={cn('text-orbit-primary', value === l.id ? 'opacity-100' : 'opacity-0')} />
-                <span className="truncate">{l.title}</span>
-                {l.city && <span className="ml-auto truncate text-xs text-orbit-muted">{l.city}</span>}
+                <span className="wrap-anywhere">{l.title}</span>
+                {l.city && <span className="ml-auto wrap-anywhere text-xs text-orbit-muted">{l.city}</span>}
               </CommandItem>
             ))}
           </CommandList>

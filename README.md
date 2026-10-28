@@ -19,7 +19,8 @@ Vercel in step 6.
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. **SQL Editor → New query**: paste all of `supabase/migrations/001_init.sql` and click **Run**.
-   It creates every table and the public storage bucket `post-media`.
+   It creates every table and the public storage bucket `post-media`. Then run every later file
+   in `supabase/migrations/` (002, 003, …) the same way, in order.
 3. **Storage**: confirm the bucket `post-media` exists and is **Public** (Google downloads post
    images from its public URLs).
 4. **Project Settings → API**: copy the **Project URL** → `SUPABASE_URL` and the
@@ -115,7 +116,8 @@ Vercel Hobby cron jobs can only run once a day, so Supabase triggers the publish
 
 1. Sign in (you become admin) and invite the team in Clerk.
 2. **Connections → Connect Google Account** for each Gmail. Each sync starts automatically.
-3. **Locations**: check time zones, deactivate profiles you do not manage, set a default Gmail
+3. **Locations**: time zones are filled in from each address on sync (check them; a zone you
+   change by hand is never overwritten), deactivate profiles you do not manage, set a default Gmail
    where several Gmails manage the same business.
 4. **Clients**: rename or merge the auto-created clients; add brand voice and default link.
    Mark clients you no longer serve as inactive.

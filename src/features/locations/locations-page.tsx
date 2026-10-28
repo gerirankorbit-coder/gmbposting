@@ -280,10 +280,10 @@ export function LocationsPage() {
                         )}
                         <TableCell>
                           <div className="w-[300px] max-w-[300px]">
-                          <Link to={`/locations/${l.id}`} className="line-clamp-2 font-bold text-orbit-heading hover:text-orbit-primary" title={l.title}>
+                          <Link to={`/locations/${l.id}`} className="wrap-anywhere font-bold text-orbit-heading hover:text-orbit-primary" title={l.title}>
                             {l.title}
                           </Link>
-                          <p className="truncate text-xs text-orbit-muted">
+                          <p className="wrap-anywhere text-xs text-orbit-muted">
                             {[l.primary_category, l.address_text ?? l.service_area_text].filter(Boolean).join(' · ') || '—'}
                           </p>
                           </div>
@@ -340,7 +340,7 @@ export function LocationsPage() {
                         <Link to={`/locations/${l.id}`} className="font-bold text-orbit-heading">
                           {l.title}
                         </Link>
-                        <p className="truncate text-xs text-orbit-muted">{l.address_text ?? l.service_area_text ?? '—'}</p>
+                        <p className="wrap-anywhere text-xs text-orbit-muted">{l.address_text ?? l.service_area_text ?? '—'}</p>
                       </div>
                       <RowMenu location={l} canManage={canManage} onEdit={() => setEditing(l)} />
                     </div>

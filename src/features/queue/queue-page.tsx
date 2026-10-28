@@ -180,14 +180,14 @@ export function QueuePage() {
                                 {p.event_title ? <strong className="text-orbit-heading">{p.event_title} · </strong> : null}
                                 {p.summary || '—'}
                               </button>
-                              {p.last_error && <p className="mt-0.5 line-clamp-1 text-xs text-rose-600">{p.last_error}</p>}
-                              {p.review_note && p.status === 'draft' && <p className="mt-0.5 line-clamp-1 text-xs text-amber-700">Note: {p.review_note}</p>}
+                              {p.last_error && <p className="mt-0.5 wrap-anywhere text-xs text-rose-600">{p.last_error}</p>}
+                              {p.review_note && p.status === 'draft' && <p className="mt-0.5 wrap-anywhere text-xs text-amber-700">Note: {p.review_note}</p>}
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="w-[200px] max-w-[200px]">
-                            <p className="truncate text-sm font-semibold text-orbit-heading" title={p.location?.title}>{p.location?.title}</p>
+                            <p className="wrap-anywhere text-sm font-semibold text-orbit-heading" title={p.location?.title}>{p.location?.title}</p>
                             <ClientDot client={p.location?.client ?? null} className="text-xs" />
                           </div>
                         </TableCell>
@@ -198,7 +198,7 @@ export function QueuePage() {
                           <ZonedTime iso={p.published_at ?? p.scheduled_at} timeZone={p.location?.timezone ?? tz} />
                         </TableCell>
                         <TableCell>
-                          <div className="w-[180px] max-w-[180px] truncate text-sm" title={p.connection_email ?? undefined}>{p.connection_email ?? '—'}</div>
+                          <div className="w-[180px] max-w-[180px] wrap-anywhere text-sm" title={p.connection_email ?? undefined}>{p.connection_email ?? '—'}</div>
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
                           <PostRowMenu actions={ui.actionsFor(p)} label={p.location?.title ?? 'post'} />
@@ -214,7 +214,7 @@ export function QueuePage() {
                     <div className="flex items-start gap-3">
                       <PostThumb post={p} />
                       <button type="button" className="min-w-0 flex-1 text-left" onClick={() => ui.openDrawer(p)}>
-                        <p className="truncate text-sm font-bold text-orbit-heading">{p.location?.title}</p>
+                        <p className="wrap-anywhere text-sm font-bold text-orbit-heading">{p.location?.title}</p>
                         <p className="line-clamp-2 text-sm text-orbit-body">{p.summary || p.event_title || '—'}</p>
                       </button>
                       <PostRowMenu actions={ui.actionsFor(p)} label={p.location?.title ?? 'post'} />

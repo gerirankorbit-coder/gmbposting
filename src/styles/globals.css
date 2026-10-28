@@ -200,3 +200,11 @@
     justify-content: center;
   }
 }
+
+@layer utilities {
+  /* Long names, emails and URLs wrap onto the next line instead of spilling out of their box. */
+  .wrap-anywhere {
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+}
