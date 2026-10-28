@@ -2,9 +2,178 @@
 
 Google Business Profile posting platform for Rank Orbit LLC: connect Gmail accounts, sync
 Business Profiles, compose or bulk-import posts, approve them, and publish on schedule through
-the official Google Business Profile APIs.
+the official Google Business Profile APIs only (no browser automation or scraping).
 
-> Status: **Phases 1–9** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue, image library + branded graphics + notifications, spreadsheet import, publisher, dashboard/activity/settings/roles). The full setup guide is written in the final phase.
+**Contents:** [Setup](#setup) · [First-run checklist](#first-run-checklist) ·
+[Local development](#local-development) · [Troubleshooting](#troubleshooting) ·
+[How it works](#how-it-works)
+
+---
+
+# Setup
+
+Do these in order. Keep a text file open and paste each value as you collect it; they all go into
+Vercel in step 6.
+
+## 1. Supabase (database + image storage)
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. **SQL Editor → New query**: paste all of `supabase/migrations/001_init.sql` and click **Run**.
+   It creates every table and the public storage bucket `post-media`.
+3. **Storage**: confirm the bucket `post-media` exists and is **Public** (Google downloads post
+   images from its public URLs).
+4. **Project Settings → API**: copy the **Project URL** → `SUPABASE_URL` and the
+   **service_role** key → `SUPABASE_SERVICE_ROLE_KEY`. The service-role key is a server secret.
+5. `supabase/cron.sql` is run later, in step 7, after the app is deployed.
+
+## 2. Clerk (team login)
+
+1. Create an application at [clerk.com](https://clerk.com); enable Email (and Google if you like).
+2. **Configure → Restrictions → Sign-up mode → Restricted**, so only invited people can join.
+3. **API Keys**: copy the Publishable key → `VITE_CLERK_PUBLISHABLE_KEY` and the Secret key →
+   `CLERK_SECRET_KEY`.
+4. Invite your team from **Users → Invite**. The first person to sign in becomes `admin`; everyone
+   after that starts as `writer`. Admins change roles on the **Settings** page.
+
+## 3. Google Cloud (the project whose Business Profile API access is approved)
+
+1. **APIs & Services → Library**: make sure these are enabled:
+   Google My Business API, My Business Account Management API, My Business Business Information API.
+2. **APIs & Services → Credentials →** your OAuth **Web application** client →
+   **Authorized redirect URIs**, add:
+   - `https://<your-project>.vercel.app/api/google/callback`
+   - `http://localhost:5173/api/google/callback` (local development only)
+3. Copy the **Client ID** → `GOOGLE_CLIENT_ID` and **Client secret** → `GOOGLE_CLIENT_SECRET`.
+4. **OAuth consent screen**: scopes `openid`, `email`, `profile`,
+   `https://www.googleapis.com/auth/business.manage`. While the app is in *Testing*, add every
+   Gmail you will connect as a test user.
+
+## 4. Gemini
+
+Create an API key at [aistudio.google.com](https://aistudio.google.com) → `GEMINI_API_KEY`.
+Leave `GEMINI_MODEL` empty to use `gemini-flash-latest` (always the current Flash model).
+
+## 5. Secrets and optional email
+
+Generate each secret once (any terminal with OpenSSL):
+
+```bash
+openssl rand -base64 32   # TOKEN_ENCRYPTION_KEY (must be exactly 32 bytes, base64)
+openssl rand -hex 32      # OAUTH_STATE_SECRET
+openssl rand -hex 32      # CRON_SECRET
+```
+
+Never change `TOKEN_ENCRYPTION_KEY` after connecting Gmails; stored Google tokens become
+unreadable and every account must be reconnected.
+
+Optional email alerts via [Resend](https://resend.com): verify your sending domain, create an API
+key, then set `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL` (e.g. `OrbitPost <alerts@yourdomain.com>`)
+and `NOTIFY_TO_EMAILS` (comma-separated). Leave them empty for in-app alerts only.
+
+## 6. Vercel (hosting)
+
+1. **Add New → Project →** import this GitHub repository. Vercel detects Vite; keep the defaults
+   (build `npm run build`, output `dist`).
+2. **Settings → Environment Variables**: add every variable from `.env.example`:
+
+   | Variable | Value |
+   | --- | --- |
+   | `VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | Step 2 |
+   | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Step 1 |
+   | `SUPABASE_STORAGE_BUCKET` | `post-media` |
+   | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Step 3 |
+   | `GOOGLE_REDIRECT_URI` | `https://<your-project>.vercel.app/api/google/callback` |
+   | `TOKEN_ENCRYPTION_KEY`, `OAUTH_STATE_SECRET`, `CRON_SECRET` | Step 5 |
+   | `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`) | Step 4 |
+   | `APP_URL` | `https://<your-project>.vercel.app` (no trailing slash) |
+   | `DEFAULT_TIMEZONE` | `Asia/Karachi` (or your default) |
+   | `IMAGE_LOW_STOCK_THRESHOLD` | `5` |
+   | `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL`, `NOTIFY_TO_EMAILS` | Step 5 (optional) |
+
+3. **Deploy.** Production deploys from the default branch (`main`).
+4. Open `https://<your-project>.vercel.app/api/health`. Every entry under `config` you use should
+   be `true`, and `database` should be `true`. A `false` means that variable is missing or wrong;
+   fix it and redeploy.
+5. Changed a variable later? **Deployments → … → Redeploy** so the function picks it up.
+
+## 7. Turn on automatic publishing
+
+Vercel Hobby cron jobs can only run once a day, so Supabase triggers the publisher every 5 minutes.
+
+1. Open `supabase/cron.sql` and replace **every** `https://YOUR-APP.vercel.app` with your
+   `APP_URL` and **every** `YOUR_CRON_SECRET` with your `CRON_SECRET`.
+2. Paste it into the Supabase **SQL Editor** and **Run**.
+3. After ~5 minutes, run this in the SQL Editor:
+   ```sql
+   select status_code, created, left(content::text, 200) from net._http_response order by created desc limit 5;
+   ```
+   `200` with `{"processed":…}` means it works. `401` = wrong secret, `404` = wrong URL.
+4. Safety nets: `vercel.json` also calls the publisher and the daily maintenance once a day, and
+   admins can press **Settings → Run publisher now** at any time.
+
+# First-run checklist
+
+1. Sign in (you become admin) and invite the team in Clerk.
+2. **Connections → Connect Google Account** for each Gmail. Each sync starts automatically.
+3. **Locations**: check time zones, deactivate profiles you do not manage, set a default Gmail
+   where several Gmails manage the same business.
+4. **Clients**: rename or merge the auto-created clients; add brand voice and default link.
+   Mark clients you no longer serve as inactive.
+5. **Library → each client → Brand kit**: logo, colours, tagline, preferred templates.
+6. **Library → Upload images** for each client (files or a ZIP).
+7. **Settings**: approval on/off, posts per run, spacing.
+8. **Import → Download template**, fill it in, upload, review, commit.
+9. Approve the posts (if approval is on) and watch them publish on the **Calendar** / **Queue**.
+
+# Local development
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+Fill in `.env.local`, then run the API and the web app in two terminals:
+
+```bash
+npm run dev:api
+```
+
+```bash
+npm run dev
+```
+
+Open http://localhost:5173 (Vite proxies `/api` to the API on port 3001). Alternatively run
+`vercel dev` to use the real serverless function. For Google sign-in locally, set
+`GOOGLE_REDIRECT_URI=http://localhost:5173/api/google/callback` and `APP_URL=http://localhost:5173`.
+
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Vite dev server |
+| `npm run dev:api` | Local Hono API server (reads `.env.local` / `.env`) |
+| `npm run typecheck` | Type-checks the client, server and config projects |
+| `npm run build` | Production build of the SPA into `dist/` |
+
+# Troubleshooting
+
+| Problem | Cause and fix |
+| --- | --- |
+| `redirect_uri_mismatch` when connecting | The redirect URI in Google Cloud must match `GOOGLE_REDIRECT_URI` exactly (https, domain, `/api/google/callback`, no trailing slash). |
+| Connection shows **Needs reconnect** / `invalid_grant` | The Gmail's access expired or was revoked (password change, removed access, Testing-mode 7-day tokens). Click **Reconnect**. Publish the consent screen to avoid weekly expiry. |
+| Google error 429 / quota | Too many requests. Lower **Max posts per run** or raise **Seconds between posts** in Settings; failed posts retry automatically. |
+| Account syncs with 0 locations | Google returns `{}` when the account has no locations; check the Gmail really manages those profiles in business.google.com. |
+| Post failed: image rejected | Google must download the image: the `post-media` bucket must be public, and images must be JPG/PNG (OrbitPost converts uploads automatically). |
+| Post failed: "Phone numbers are not allowed" | Google rejects phone numbers, links and emails in post text; edit the text and **Retry now**. |
+| Import row "Business not found under this Gmail" | That Gmail cannot manage the business. The message names the Gmail that can; change the `gmail` column or sync the account. |
+| Import row "needs review" | Several locations match the name; pick one in the preview or add a `city` column. |
+| Branded graphics fail / font errors on Vercel | `vercel.json` must keep `"includeFiles": "server/assets/**"` so the fonts deploy with the function. |
+| `/api/health` shows `server_misconfigured` | A required environment variable is missing; the error message names it. |
+| Publisher never runs | Check step 7: `net._http_response` should show 200s every 5 minutes. |
+
+# How it works
+
+> Status: all phases (1–11) are implemented. One known deviation: SheetJS comes from npm
+> (`xlsx@0.18.5`) because `cdn.sheetjs.com` was blocked in the build environment; see
+> [Spreadsheet import](#spreadsheet-import) for the one-line switch to the official build.
 
 ## Stack
 
