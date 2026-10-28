@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Bubbles, OrbitLine } from './orbit-decor';
 
@@ -26,6 +26,9 @@ export function PageHeader({
   bubbles = false,
   className,
 }: PageHeaderProps) {
+  useEffect(() => {
+    document.title = `${title} · OrbitPost`;
+  }, [title]);
   let content: ReactNode = title;
   if (highlight && title.includes(highlight)) {
     const [before, ...rest] = title.split(highlight);

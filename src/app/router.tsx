@@ -4,6 +4,7 @@ import { SignInPage } from '@/features/auth/sign-in-page';
 import { NotFoundPage } from '@/features/misc/not-found-page';
 import { AppLayout } from './layout';
 import { RoleGate } from './role-gate';
+import { RouteError } from './route-error';
 
 const page = <K extends string, T extends Record<K, React.ComponentType>>(
   loader: () => Promise<T>,
@@ -37,9 +38,10 @@ const ActivityPage = page(() => import('@/features/activity/activity-page'), 'Ac
 const SettingsPage = page(() => import('@/features/settings/settings-page'), 'SettingsPage');
 
 export const router = createBrowserRouter([
-  { path: '/sign-in/*', element: <SignInPage /> },
+  { path: '/sign-in/*', element: <SignInPage />, errorElement: <RouteError /> },
   {
     element: <AppLayout />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'import', element: <ImportPage /> },
