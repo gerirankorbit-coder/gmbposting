@@ -7,6 +7,7 @@ import { ApiError } from './lib/errors.js';
 import { requireAuth, type AuthEnv } from './middleware/auth.js';
 import { aiRoutes } from './routes/ai.js';
 import { clientRoutes } from './routes/clients.js';
+import { cronRoutes, publisherRoutes } from './routes/cron.js';
 import { connectionRoutes } from './routes/connections.js';
 import { googleCallbackRoutes, googleRoutes } from './routes/google.js';
 import { importRoutes } from './routes/imports.js';
@@ -73,6 +74,8 @@ app.get('/health', async (c) => {
 
 // Google OAuth callback: public, protected by the HMAC-signed state parameter.
 app.route('/google', googleCallbackRoutes);
+// Cron endpoints: public, protected by CRON_SECRET.
+app.route('/cron', cronRoutes);
 
 // --- Authenticated routes ------------------------------------------------------------------
 // Everything below requires a valid Clerk session. Public routes must be registered above.
@@ -89,5 +92,6 @@ app.route('/settings', settingsRoutes);
 app.route('/library', libraryRoutes);
 app.route('/notifications', notificationRoutes);
 app.route('/imports', importRoutes);
+app.route('/publisher', publisherRoutes);
 
 export type AppType = typeof app;

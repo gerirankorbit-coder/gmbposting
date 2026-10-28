@@ -4,7 +4,7 @@ Google Business Profile posting platform for Rank Orbit LLC: connect Gmail accou
 Business Profiles, compose or bulk-import posts, approve them, and publish on schedule through
 the official Google Business Profile APIs.
 
-> Status: **Phases 1–7** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue, image library + branded graphics + notifications, spreadsheet import). The full setup guide is written in the final phase.
+> Status: **Phases 1–8** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue, image library + branded graphics + notifications, spreadsheet import, publisher). The full setup guide is written in the final phase.
 
 ## Stack
 
@@ -127,3 +127,18 @@ Every rule is enforced on the server; the UI only hides actions a role cannot ta
 - **SheetJS source:** the spec asks for the official build from `cdn.sheetjs.com`. That host was
   blocked in the build environment, so `xlsx@0.18.5` from npm is installed for now. Switch with:
   `npm i https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz` (same API, no code changes).
+
+## Publisher
+
+- `GET|POST /api/cron/publish` (header `Authorization: Bearer <CRON_SECRET>`) publishes due posts:
+  scheduled posts whose time has passed, plus failed posts waiting for an automatic retry.
+- Posts are claimed atomically (`claim_due_posts`), so overlapping runs never double-publish.
+  A post interrupted mid-publish is checked against Google's recent posts before it is retried.
+- `auto` images are resolved at publish time (library → branded graphic / reuse).
+- Failures: Google rejections and account problems fail permanently with a clear message and a
+  `post_failed` notification; outages and rate limits retry after 5 and 30 minutes (3 attempts).
+- Requests are spaced by `publish_spacing_seconds`; a run stops at ~50 s and leaves the rest for
+  the next run. The response is `{ processed, published, failed, remaining }`.
+- `GET|POST /api/cron/daily`: library stock check, rolling Google account sync, email digest.
+- Triggers: `supabase/cron.sql` (pg_cron every 5 minutes + daily), the daily Vercel crons in
+  `vercel.json` as a safety net, and **Run publisher now** for admins (Settings).

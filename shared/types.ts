@@ -408,3 +408,12 @@ export interface ImportDetailDTO {
   import: ImportSummaryDTO;
   rows: ImportRowDTO[];
 }
+
+export interface PublisherSummary {
+  processed: number;
+  published: number;
+  failed: number;
+  remaining: number;
+  started_at: string;
+  duration_ms: number;
+}
