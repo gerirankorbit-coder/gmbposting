@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* shadcn tokens mapped onto the Rank Orbit palette (HSL triplets). */
+    --background: 262 100% 98%; /* #F8F5FF */
+    --foreground: 240 29% 6%; /* #0B0B14 */
+    --card: 0 0% 100%;
+    --card-foreground: 240 13% 28%; /* #3F3F52 */
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 13% 28%;
+    --primary: 268 91% 57%; /* #8B2CF5 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 258 100% 96%;
+    --secondary-foreground: 268 91% 45%;
+    --muted: 258 60% 96%;
+    --muted-foreground: 240 8% 46%; /* #6B6B80 */
+    --accent: 262 100% 95%;
+    --accent-foreground: 268 91% 40%;
+    --destructive: 350 89% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 256 100% 94%; /* #E9E1FF */
+    --input: 256 100% 92%;
+    --ring: 268 91% 57%;
+    --radius: 1rem;
+
+    --orbit-gradient: linear-gradient(90deg, #7c3aed 0%, #a21caf 60%, #d946ef 100%);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply min-h-screen bg-orbit-bg font-sans text-orbit-body;
+    background-image:
+      radial-gradient(60rem 40rem at -10% -10%, #ede4ff 0%, transparent 60%),
+      radial-gradient(50rem 36rem at 110% 0%, #f5e8ff 0%, transparent 60%),
+      radial-gradient(44rem 30rem at 100% 110%, #ede4ff 0%, transparent 60%);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-extrabold tracking-tightest text-orbit-heading;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-orbit-primary/60 ring-offset-2 ring-offset-orbit-bg;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply border border-white/70 bg-white/75 backdrop-blur-xl;
+    box-shadow:
+      0 0 0 1px #e9e1ff,
+      0 8px 32px -12px rgba(76, 29, 149, 0.18);
+  }
+
+  .glass-card {
+    @apply glass rounded-3xl;
+  }
+
+  .text-gradient {
+    @apply bg-orbit-gradient bg-clip-text text-transparent;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-orbit-line bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-orbit-heading shadow-sm;
+  }
+
+  .eyebrow::before {
+    content: '';
+    @apply h-1.5 w-1.5 rounded-full bg-orbit-primary;
+  }
+
+  /* Floating glass bubble used as background decoration. */
+  .bubble {
+    @apply pointer-events-none absolute rounded-full;
+    background:
+      radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.35) 18%, transparent 42%),
+      radial-gradient(circle at 70% 75%, rgba(217, 70, 239, 0.28) 0%, transparent 55%),
+      radial-gradient(circle at 50% 50%, rgba(139, 44, 245, 0.18) 0%, rgba(237, 228, 255, 0.35) 70%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+      inset 0 0 24px rgba(255, 255, 255, 0.55),
+      0 18px 40px -18px rgba(139, 44, 245, 0.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
