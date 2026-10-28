@@ -9,10 +9,12 @@ import {
   Send,
   Trash2,
   Undo2,
+  Wand2,
 } from 'lucide-react';
 import type { PostListItemDTO } from '../../../shared/types';
 import { useHasRole, useMe } from '@/app/auth';
 import { ConfirmDialog } from '@/components/app/confirm-dialog';
+import { BrandedDialog } from './branded-dialog';
 import { PostDrawer } from './post-drawer';
 import { PostEditDialog } from './post-edit-dialog';
 import { RejectDialog } from './reject-dialog';
@@ -50,6 +52,7 @@ export function usePostUi() {
   const [rescheduling, setRescheduling] = useState<PostListItemDTO | null>(null);
   const [rejecting, setRejecting] = useState<string[] | null>(null);
   const [confirm, setConfirm] = useState<Confirm | null>(null);
+  const [branding, setBranding] = useState<PostListItemDTO | null>(null);
 
   const approve = useApprovePosts();
   const submit = useSubmitPosts();
@@ -72,6 +75,9 @@ export function usePostUi() {
       a.push({ key: 'reschedule', label: 'Reschedule', icon: CalendarClock, run: () => setRescheduling(p) });
     }
     if (isManager && p.status === 'failed') a.push({ key: 'retry', label: 'Retry now', icon: RotateCw, run: () => retry.mutate(p.id) });
+    if (isAdmin && ['draft', 'pending_approval', 'scheduled', 'failed'].includes(p.status) && p.location?.client) {
+      a.push({ key: 'branded', label: p.image_source === 'branded' ? 'Regenerate branded image' : 'Branded image', icon: Wand2, run: () => setBranding(p) });
+    }
     if (p.google_search_url) {
       a.push({ key: 'view', label: 'View on Google', icon: ExternalLink, href: p.google_search_url, run: () => window.open(p.google_search_url!, '_blank', 'noopener') });
     }
@@ -140,6 +146,7 @@ export function usePostUi() {
       <PostEditDialog post={editing} open={!!editing} onOpenChange={(o) => !o && setEditing(null)} />
       <RescheduleDialog post={rescheduling} open={!!rescheduling} onOpenChange={(o) => !o && setRescheduling(null)} />
       <RejectDialog ids={rejecting ?? []} open={!!rejecting} onOpenChange={(o) => !o && setRejecting(null)} />
+      <BrandedDialog post={branding} open={!!branding} onOpenChange={(o) => !o && setBranding(null)} />
       <ConfirmDialog
         open={!!confirm}
         onOpenChange={(o) => !o && setConfirm(null)}

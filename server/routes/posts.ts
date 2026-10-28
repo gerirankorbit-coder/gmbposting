@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import {
+  brandedRegenerateSchema,
   calendarQuerySchema,
   createPostsSchema,
   postIdsSchema,
@@ -21,6 +22,7 @@ import { GoogleClient, googleErrorMessage } from '../google/client.js';
 import { GoogleApiError } from '../google/errors.js';
 import { deleteLocalPost } from '../google/posts.js';
 import { createPosts } from '../posts/create.js';
+import { regenerateBranded } from '../images/resolve.js';
 import { getPostItem, getPostRow, listPosts, POST_LIST_SELECT, toListItem } from '../posts/queries.js';
 
 const LOCKED: PostStatus[] = ['publishing', 'published', 'cancelled'];
@@ -290,6 +292,21 @@ export const postRoutes = new Hono<AuthEnv>()
       entityId: id,
       details: { google_post_name: post.google_post_name },
     });
+    return c.json(await getPostItem(id));
+  })
+
+  /** Generates (or regenerates) a branded graphic for a post that has not been published. */
+  .post('/:id/branded', requireRole('admin'), async (c) => {
+    const id = c.req.param('id');
+    const { template } = await parseBody(c, brandedRegenerateSchema);
+    const post = await getPostRow(id);
+    if (LOCKED.includes(post.status)) throw conflict(`A ${post.status} post cannot get a new image.`);
+    try {
+      await regenerateBranded(post, template);
+    } catch (err) {
+      throw badRequest(err instanceof Error ? err.message : 'Could not generate the graphic.');
+    }
+    await logActivity({ actor: c.get('user').id, action: 'post.branded_generated', entityType: 'post', entityId: id, details: { template: template ?? 'auto' } });
     return c.json(await getPostItem(id));
   })
 

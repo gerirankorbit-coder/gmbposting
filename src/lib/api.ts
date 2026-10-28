@@ -77,6 +77,19 @@ async function request<T>(
   return data as T;
 }
 
+/** POSTs JSON and returns the response body as a Blob (e.g. rendered PNG previews). */
+async function postForBlob(path: string, body: unknown, signal?: AbortSignal): Promise<Blob> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const token = await getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(buildUrl(path), { method: 'POST', headers, body: JSON.stringify(body), signal });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => null)) as ApiErrorBody | null;
+    throw new ApiRequestError(res.status, data?.error.code ?? 'http_error', data?.error.message ?? `Request failed (${res.status}).`);
+  }
+  return res.blob();
+}
+
 export const api = {
   get: <T>(path: string, query?: Query, signal?: AbortSignal) =>
     request<T>('GET', path, { query, signal }),
@@ -84,6 +97,7 @@ export const api = {
   put: <T>(path: string, body?: unknown) => request<T>('PUT', path, { body }),
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, { body }),
   delete: <T>(path: string, body?: unknown) => request<T>('DELETE', path, { body }),
+  postForBlob,
 };
 
 export function errorMessage(err: unknown): string {

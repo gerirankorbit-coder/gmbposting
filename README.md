@@ -4,7 +4,7 @@ Google Business Profile posting platform for Rank Orbit LLC: connect Gmail accou
 Business Profiles, compose or bulk-import posts, approve them, and publish on schedule through
 the official Google Business Profile APIs.
 
-> Status: **Phases 1–5** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue). The full setup guide is written in the final phase.
+> Status: **Phases 1–6** complete (scaffold, database, Google connect + sync, compose + media + AI, approvals/calendar/queue, image library + branded graphics + notifications). The full setup guide is written in the final phase.
 
 ## Stack
 
@@ -90,3 +90,24 @@ reachable.
 | Delete record | writer (own drafts), manager+ | never-published posts only |
 
 Every rule is enforced on the server; the UI only hides actions a role cannot take.
+
+## Image library, branded graphics and notifications
+
+- **Library**: images are processed like post uploads, stored under `post-media/library/<client_id>/`,
+  and exact duplicates (same processed bytes) are skipped. ZIP files are unpacked in the browser.
+  An image can be limited to one location.
+- **Picking** (`pick_library_image` RPC, atomic): location-specific unused images first, then
+  client-wide, oldest first. An image is never reused while unused ones remain. When none are left,
+  the client setting decides: a branded graphic (default) or the least recently used image.
+  `auto` posts resolve their image at publish time (`server/images/resolve.ts`), so a library
+  refilled after scheduling is used automatically.
+- **Branded graphics** (`server/images/branded.ts`): 1200×900 PNGs rendered with satori + resvg in
+  four templates (bold gradient, logo split, minimal card, badge for offers/events) using the
+  client's brand kit, with a 3–8 word Gemini headline (heuristic fallback). Templates and colour
+  variations rotate per client. Fonts are bundled from `server/assets/fonts` (Plus Jakarta Sans,
+  SIL OFL) via `includeFiles` in `vercel.json`.
+- **Stock alerts**: after every pick, upload or settings change (and daily), each client's stock
+  state (`ok` / `low` / `empty`) is recomputed and the team is notified once per change:
+  `library_low`, `library_empty`, then `library_refilled` when images are added.
+- **Email**: when `RESEND_API_KEY`, `NOTIFY_FROM_EMAIL` and `NOTIFY_TO_EMAILS` are set, low/empty
+  library, reconnect and final post-failure alerts are emailed as one digest at most once an hour.

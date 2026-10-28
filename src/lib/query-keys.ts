@@ -14,4 +14,10 @@ export const qk = {
   posts: (params: object) => ['posts', 'list', params] as const,
   postCalendar: (params: object) => ['posts', 'calendar', params] as const,
   post: (id: string) => ['posts', 'detail', id] as const,
+  libraryAll: ['library'] as const,
+  library: (all: boolean) => ['library', 'list', all] as const,
+  libraryClient: (id: string) => ['library', 'client', id] as const,
+  notificationsAll: ['notifications'] as const,
+  notifications: (params: object) => ['notifications', 'list', params] as const,
+  alerts: ['notifications', 'alerts'] as const,
 };

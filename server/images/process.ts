@@ -92,3 +92,20 @@ export async function processImage(input: Buffer, options: { minSize?: boolean }
     hash: createHash('sha256').update(out.data).digest('hex'),
   };
 }
+
+/** Logos keep transparency: auto-rotate, fit within 600px and store as PNG. */
+export async function processLogo(input: Buffer): Promise<{ buffer: Buffer; width: number; height: number }> {
+  if (input.length > MAX_UPLOAD_BYTES) throw badRequest('Logos must be 15 MB or smaller.');
+  let source = input;
+  if (isHeic(input)) source = await decodeHeic(input);
+  try {
+    const out = await sharp(source, { failOn: 'error' })
+      .rotate()
+      .resize({ width: 600, height: 600, fit: 'inside', withoutEnlargement: true })
+      .png({ compressionLevel: 9 })
+      .toBuffer({ resolveWithObject: true });
+    return { buffer: out.data, width: out.info.width, height: out.info.height };
+  } catch {
+    throw badRequest('The logo could not be read. Use PNG, JPG, WEBP or SVG.');
+  }
+}

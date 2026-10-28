@@ -195,3 +195,37 @@ export async function generateVariations(req: VariationRequest): Promise<Variati
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, batches.length) }, worker));
   return results.flat();
 }
+
+const HEADLINE_INSTRUCTION = `You write short headlines for social graphics of local businesses.
+Return one headline of 3 to 8 words that captures the main point of the post.
+No phone numbers, URLs, emails, hashtags, emojis, quotes or ALL CAPS. No prices or discounts unless they appear in the post.
+Return only the headline text.`;
+
+/** Fallback headline: the first sentence of the post, trimmed to 8 words. */
+export function fallbackHeadline(summary: string, business: string): string {
+  const first = summary.replace(/\s+/g, ' ').split(/(?<=[.!?])\s/)[0] ?? '';
+  const words = first.replace(/[^\p{L}\p{N}%&' -]/gu, '').split(' ').filter(Boolean).slice(0, 8);
+  return words.length >= 3 ? words.join(' ') : `News from ${business}`;
+}
+
+/** 3–8 word headline for a branded graphic. Falls back to a heuristic when AI is unavailable. */
+export async function generateHeadline(summary: string, business: string): Promise<string> {
+  if (!optionalEnv('GEMINI_API_KEY') || !summary.trim()) return fallbackHeadline(summary, business);
+  try {
+    const response = await ai().models.generateContent({
+      model: geminiModel(),
+      contents: `Business: ${business}\nPost:\n${truncateText(summary, 1500)}`,
+      config: { systemInstruction: HEADLINE_INSTRUCTION, temperature: 0.7, maxOutputTokens: 40 },
+    });
+    const text = (response.text ?? '').replace(/["“”#*_]/g, '').replace(/\s+/g, ' ').trim();
+    const words = text.split(' ').filter(Boolean);
+    const issues = findContentIssues(text);
+    if (words.length < 2 || words.length > 10 || issues.phone || issues.url || issues.email) {
+      return fallbackHeadline(summary, business);
+    }
+    return words.slice(0, 8).join(' ').replace(/[.]+$/, '');
+  } catch (err) {
+    console.error('[gemini] headline failed', err instanceof Error ? err.message : err);
+    return fallbackHeadline(summary, business);
+  }
+}

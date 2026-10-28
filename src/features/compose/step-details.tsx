@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
-import { CalendarDays, ImageIcon, ImageOff, Loader2, Megaphone, Sparkles, Tag, Trash2, Upload } from 'lucide-react';
+import { CalendarDays, ImageIcon, ImageOff, Images, Loader2, Megaphone, Sparkles, Tag, Trash2, Upload } from 'lucide-react';
+import { LibraryPicker } from './library-picker';
 import { toast } from 'sonner';
 import { CTA_TYPES, type CtaType, type TopicType } from '../../../shared/types';
 import { errorMessage } from '@/lib/api';
@@ -22,7 +23,7 @@ export const CTA_LABELS: Record<CtaType, string> = {
   CALL: 'Call now',
 };
 
-export function StepDetails({ state, patch }: { state: ComposeState; patch: (p: Partial<ComposeState>) => void }) {
+export function StepDetails({ state, patch, clientId }: { state: ComposeState; patch: (p: Partial<ComposeState>) => void; clientId: string | null }) {
   const eventLike = state.topicType !== 'STANDARD';
   return (
     <div className="grid gap-7">
@@ -119,12 +120,12 @@ export function StepDetails({ state, patch }: { state: ComposeState; patch: (p: 
         </div>
       </section>
 
-      <ImageSection state={state} patch={patch} />
+      <ImageSection state={state} patch={patch} clientId={clientId} />
     </div>
   );
 }
 
-function ImageSection({ state, patch }: { state: ComposeState; patch: (p: Partial<ComposeState>) => void }) {
+function ImageSection({ state, patch, clientId }: { state: ComposeState; patch: (p: Partial<ComposeState>) => void; clientId: string | null }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -153,9 +154,16 @@ function ImageSection({ state, patch }: { state: ComposeState; patch: (p: Partia
         options={[
           { value: 'auto', label: 'Auto', icon: Sparkles },
           { value: 'upload', label: 'Upload', icon: ImageIcon },
+          ...(clientId ? [{ value: 'library' as const, label: 'From library', icon: Images }] : []),
           { value: 'none', label: 'No image', icon: ImageOff },
         ]}
       />
+      {!clientId && state.selected.length > 0 && (
+        <p className="text-xs text-orbit-muted">Picking a specific library image is available when all selected locations belong to one client.</p>
+      )}
+      {state.imageChoice === 'library' && clientId && (
+        <LibraryPicker clientId={clientId} selectedId={state.libraryImage?.id ?? null} onPick={(img) => patch({ libraryImage: img })} />
+      )}
       {state.imageChoice === 'auto' && (
         <p className="text-sm text-orbit-muted">
           Each post gets the next unused image from its client's library when it publishes. If the

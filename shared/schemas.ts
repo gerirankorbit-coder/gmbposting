@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CTA_TYPES, LIBRARY_EXHAUSTED_MODES, POST_STATUSES, POST_SUMMARY_MAX, ROLES, TOPIC_TYPES } from './types.js';
+import { BRANDED_TEMPLATES, CTA_TYPES, LIBRARY_EXHAUSTED_MODES, NOTIFICATION_TYPES, POST_STATUSES, POST_SUMMARY_MAX, ROLES, TOPIC_TYPES } from './types.js';
 
 export const roleSchema = z.enum(ROLES);
 
@@ -244,3 +244,45 @@ export type PostUpdate = z.input<typeof postUpdateSchema>;
 export const postIdsSchema = z.object({ ids: z.array(uuidSchema).min(1).max(1000) });
 export const rejectPostsSchema = postIdsSchema.extend({ note: z.string().trim().min(1, 'Add a note for the writer.').max(1000) });
 export const reschedulePostSchema = z.object({ scheduled_at: isoDateTime });
+
+// ---------------------------------------------------------------------------------------------
+// Library & brand kit
+// ---------------------------------------------------------------------------------------------
+export const brandKitSchema = z.object({
+  brand_primary: hexColorSchema.nullable().optional(),
+  brand_secondary: hexColorSchema.nullable().optional(),
+  brand_text_color: hexColorSchema.nullable().optional(),
+  tagline: z.string().trim().max(80).nullable().optional(),
+  preferred_templates: z.array(z.enum(BRANDED_TEMPLATES)).max(4).optional(),
+  on_library_exhausted: z.enum(LIBRARY_EXHAUSTED_MODES).optional(),
+  low_stock_threshold: z.number().int().min(0).max(1000).nullable().optional(),
+});
+export type BrandKitUpdate = z.input<typeof brandKitSchema>;
+
+export const libraryCompleteSchema = z.object({
+  paths: z.array(uploadCompleteSchema.shape.path).min(1).max(5),
+  location_id: uuidSchema.nullable().optional(),
+  filenames: z.array(z.string().max(255)).max(5).optional(),
+});
+
+export const libraryImageUpdateSchema = z.object({
+  is_active: z.boolean().optional(),
+  location_id: uuidSchema.nullable().optional(),
+});
+
+export const brandedPreviewSchema = z.object({
+  template: z.enum(BRANDED_TEMPLATES),
+  headline: z.string().trim().max(90).optional(),
+  topic: z.enum(TOPIC_TYPES).default('STANDARD'),
+  overrides: brandKitSchema.pick({ brand_primary: true, brand_secondary: true, brand_text_color: true, tagline: true }).optional(),
+});
+
+export const brandedRegenerateSchema = z.object({ template: z.enum(BRANDED_TEMPLATES).optional() });
+
+export const notificationListQuerySchema = z.object({
+  type: z.enum(NOTIFICATION_TYPES).optional(),
+  clientId: uuidSchema.optional(),
+  unread: z.enum(['1', '0']).optional(),
+  page: intFromQuery(1, 100000, 1),
+  pageSize: intFromQuery(1, 100, 20),
+});

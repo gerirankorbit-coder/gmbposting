@@ -17,6 +17,7 @@ const CalendarPage = page(() => import('@/features/calendar/calendar-page'), 'Ca
 const QueuePage = page(() => import('@/features/queue/queue-page'), 'QueuePage');
 const ApprovalsPage = page(() => import('@/features/approvals/approvals-page'), 'ApprovalsPage');
 const LibraryPage = page(() => import('@/features/library/library-page'), 'LibraryPage');
+const ClientLibraryPage = page(() => import('@/features/library/client-library-page'), 'ClientLibraryPage');
 const LocationsPage = page(() => import('@/features/locations/locations-page'), 'LocationsPage');
 const LocationDetailPage = page(
   () => import('@/features/locations/location-detail-page'),
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
         ),
       },
       { path: 'library', element: <LibraryPage /> },
+      { path: 'library/:clientId', element: <ClientLibraryPage /> },
       { path: 'locations', element: <LocationsPage /> },
       { path: 'locations/:id', element: <LocationDetailPage /> },
       { path: 'connections', element: <ConnectionsPage /> },

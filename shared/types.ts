@@ -267,3 +267,56 @@ export interface BulkActionResult {
   updated: number;
   skipped: number;
 }
+
+export interface LibraryImageDTO {
+  id: string;
+  client_id: string;
+  location_id: string | null;
+  public_url: string;
+  width: number | null;
+  height: number | null;
+  bytes: number | null;
+  original_filename: string | null;
+  used_count: number;
+  last_used_at: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ClientStockDTO {
+  client: ClientDTO;
+  total: number;
+  unused: number;
+  threshold: number;
+  state: StockState;
+  upcoming_auto_posts: number;
+  /** When the library is projected to run out, based on scheduled auto-image posts. */
+  runs_out_at: string | null;
+}
+
+export interface LibraryUploadResult {
+  added: number;
+  duplicates: number;
+  errors: string[];
+}
+
+export interface NotificationDTO {
+  id: string;
+  type: NotificationType;
+  client_id: string | null;
+  client_name: string | null;
+  title: string;
+  body: string | null;
+  link: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface NotificationFeedDTO extends Paginated<NotificationDTO> {
+  unread: number;
+}
+
+export interface SystemAlertsDTO {
+  needsReauth: { id: string; email: string }[];
+  emptyLibraries: { id: string; name: string }[];
+}

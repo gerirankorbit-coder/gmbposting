@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { UserButton } from '@clerk/react';
-import { ArrowRight, Bell, ChevronDown, Menu } from 'lucide-react';
+import { ArrowRight, ChevronDown, Menu } from 'lucide-react';
+import { NotificationBell } from '@/features/notifications/notification-bell';
 import { hasRole } from '../../../shared/types';
 import { useMe } from '@/app/auth';
 import { primaryNav, secondaryNav, type NavItem } from '@/app/nav';
@@ -96,13 +97,7 @@ export function Navbar({ notificationSlot }: { notificationSlot?: React.ReactNod
               </ButtonChip>
             </Link>
           </Button>
-          {notificationSlot ?? (
-            <Button asChild variant="ghost" size="icon" aria-label="Notifications">
-              <Link to="/notifications">
-                <Bell />
-              </Link>
-            </Button>
-          )}
+          {notificationSlot ?? <NotificationBell />}
           <div className="flex h-10 w-10 items-center justify-center">
             <UserButton appearance={{ elements: { avatarBox: 'h-9 w-9' } }} />
           </div>

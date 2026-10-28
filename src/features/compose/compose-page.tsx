@@ -65,6 +65,8 @@ export function ComposePage() {
   }, [locById, params]);
 
   const problem = validateCompose(state, locById);
+  const selectedClients = new Set(state.selected.map((id) => locById.get(id)?.client?.id ?? null));
+  const sharedClientId = selectedClients.size === 1 ? ([...selectedClients][0] ?? null) : null;
   const stepBlocked = (s: number) => !!problem && problem.step <= s;
 
   const submit = useMutation({
@@ -181,7 +183,7 @@ export function ComposePage() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <Card className="p-4 sm:p-6">
           {step === 0 && <StepLocations state={state} patch={patch} locations={locations} clients={clients} />}
-          {step === 1 && <StepDetails state={state} patch={patch} />}
+          {step === 1 && <StepDetails state={state} patch={patch} clientId={sharedClientId} />}
           {step === 2 && <StepContent state={state} patch={patch} locById={locById} />}
           {step === 3 && <StepSchedule state={state} patch={patch} locById={locById} />}
 
@@ -247,8 +249,8 @@ export function ComposePage() {
             businessName={previewLoc?.title ?? 'Select a location'}
             topicType={state.topicType}
             summary={previewLoc ? summaryFor(state, previewLoc.id) : state.singleText}
-            imageMode={state.imageChoice === 'upload' ? 'image' : state.imageChoice}
-            imageUrl={state.upload?.url}
+            imageMode={state.imageChoice === 'upload' || state.imageChoice === 'library' ? 'image' : state.imageChoice}
+            imageUrl={state.imageChoice === 'library' ? state.libraryImage?.public_url : state.upload?.url}
             ctaType={state.ctaType === 'NONE' ? null : state.ctaType}
             eventTitle={state.eventTitle}
             eventRange={

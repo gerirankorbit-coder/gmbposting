@@ -2,9 +2,9 @@ import { format } from 'date-fns';
 import { contentWarnings } from '../../../shared/content';
 import type { PostDraftInput } from '../../../shared/schemas';
 import { spreadSchedule, zonedWallToUtc } from '../../../shared/schedule';
-import { POST_SUMMARY_MAX, type CtaType, type LocationDTO, type TopicType, type UploadedImageDTO } from '../../../shared/types';
+import { POST_SUMMARY_MAX, type CtaType, type LibraryImageDTO, type LocationDTO, type TopicType, type UploadedImageDTO } from '../../../shared/types';
 
-export type ImageChoice = 'auto' | 'upload' | 'none';
+export type ImageChoice = 'auto' | 'upload' | 'library' | 'none';
 export type ContentMode = 'single' | 'ai';
 export type ScheduleMode = 'asap' | 'specific' | 'spread';
 
@@ -24,6 +24,7 @@ export interface ComposeState {
   terms: string;
   imageChoice: ImageChoice;
   upload: UploadedImageDTO | null;
+  libraryImage: LibraryImageDTO | null;
   contentMode: ContentMode;
   singleText: string;
   brief: string;
@@ -59,6 +60,7 @@ export function initialComposeState(): ComposeState {
     terms: '',
     imageChoice: 'auto',
     upload: null,
+    libraryImage: null,
     contentMode: 'single',
     singleText: '',
     brief: '',
@@ -114,6 +116,13 @@ export function validateCompose(state: ComposeState, locById: Map<string, Locati
     return { step: 1, message: 'The button link must be a full URL starting with https://' };
   }
   if (state.imageChoice === 'upload' && !state.upload) return { step: 1, message: 'Upload an image or choose another image option.' };
+  if (state.imageChoice === 'library') {
+    if (!state.libraryImage) return { step: 1, message: 'Pick a library image or choose another image option.' };
+    const clientIds = new Set(state.selected.map((id) => locById.get(id)?.client?.id ?? null));
+    if (clientIds.size !== 1 || !clientIds.has(state.libraryImage.client_id)) {
+      return { step: 1, message: 'Library images can only be used when every selected location belongs to the same client.' };
+    }
+  }
   for (const id of state.selected) {
     const text = summaryFor(state, id).trim();
     const title = locById.get(id)?.title ?? 'a location';
@@ -167,6 +176,7 @@ export function buildDrafts(state: ComposeState, locById: Map<string, LocationDT
     image_source: state.imageChoice,
     media_url: state.imageChoice === 'upload' ? (state.upload?.url ?? null) : null,
     media_path: state.imageChoice === 'upload' ? (state.upload?.path ?? null) : null,
+    image_library_id: state.imageChoice === 'library' ? (state.libraryImage?.id ?? null) : null,
     event_title: eventLike ? state.eventTitle.trim() : null,
     event_start: eventLike ? zonedWallToUtc(state.eventStartDate, state.eventStartTime, l.timezone) : null,
     event_end: eventLike ? zonedWallToUtc(state.eventEndDate, state.eventEndTime, l.timezone) : null,

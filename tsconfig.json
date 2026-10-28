@@ -1,4 +1,17 @@
 {
+  // Vercel compiles api/ with this file; its options mirror tsconfig.server.json.
+  // `npm run typecheck` checks each project (app, server, node) separately.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "types": ["node"]
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
