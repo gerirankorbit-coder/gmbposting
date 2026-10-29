@@ -20,6 +20,13 @@ export class ApiRequestError extends Error {
   }
 }
 
+/** Vercel answers with an HTML page (not our JSON) when a function times out or crashes. */
+function platformErrorMessage(status: number): string {
+  if (status === 504) return 'The server took too long to respond. Please try again.';
+  if (status >= 500) return `The server hit an error (${status}). Please try again in a moment.`;
+  return `Request failed (${status}).`;
+}
+
 type Query = Record<string, string | number | boolean | null | undefined | string[]>;
 
 function buildUrl(path: string, query?: Query): string {
@@ -70,7 +77,7 @@ async function request<T>(
     throw new ApiRequestError(
       res.status,
       err?.code ?? 'http_error',
-      err?.message ?? `Request failed (${res.status}).`,
+      err?.message ?? platformErrorMessage(res.status),
       err?.details,
     );
   }

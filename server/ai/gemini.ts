@@ -9,6 +9,16 @@ import { ApiError } from '../lib/errors.js';
 export const DEFAULT_GEMINI_MODEL = 'gemini-flash-latest';
 const BATCH_SIZE = 8;
 const CONCURRENCY = 3;
+/** Vercel stops the function at 60 s; finish (or fail cleanly) well before that. */
+const REQUEST_BUDGET_MS = 50_000;
+/** Below this much time left, a retry would not finish, so we stop instead. */
+const MIN_CALL_MS = 12_000;
+/**
+ * Short posts don't need the model's "thinking" step, which can take tens of seconds on the
+ * newest Flash models. Some models reject this setting; then we retry once without it.
+ */
+const FAST_THINKING = { thinkingBudget: 0 };
+let thinkingSupported = true;
 
 let client: GoogleGenAI | null = null;
 function ai(): GoogleGenAI {
@@ -130,20 +140,57 @@ function cleanSummary(text: string): string {
   );
 }
 
-async function callModel(prompt: string): Promise<unknown> {
+function isThinkingConfigError(err: unknown): boolean {
+  const status = (err as { status?: number })?.status;
+  return status === 400 && /thinking/i.test(err instanceof Error ? err.message : String(err));
+}
+
+function isTimeout(err: unknown): boolean {
+  const e = err as { name?: string; message?: string };
+  return e?.name === 'AbortError' || e?.name === 'TimeoutError' || /abort|timed? ?out/i.test(e?.message ?? '');
+}
+
+type GenerateConfig = NonNullable<Parameters<GoogleGenAI['models']['generateContent']>[0]['config']>;
+
+/** generateContent with a hard timeout and without the slow thinking step where supported. */
+async function generate(contents: string, config: GenerateConfig, timeoutMs: number) {
+  const run = (withFastThinking: boolean) =>
+    ai().models.generateContent({
+      model: geminiModel(),
+      contents,
+      config: {
+        ...config,
+        ...(withFastThinking ? { thinkingConfig: FAST_THINKING } : {}),
+        abortSignal: AbortSignal.timeout(timeoutMs),
+      },
+    });
+  if (!thinkingSupported) return run(false);
+  try {
+    return await run(true);
+  } catch (err) {
+    if (!isThinkingConfigError(err)) throw err;
+    thinkingSupported = false;
+    return run(false);
+  }
+}
+
+async function callModel(prompt: string, deadline: number): Promise<unknown> {
   let response;
   try {
-    response = await ai().models.generateContent({
-      model: geminiModel(),
-      contents: prompt,
-      config: {
+    response = await generate(
+      prompt,
+      {
         systemInstruction: SYSTEM_INSTRUCTION,
         responseMimeType: 'application/json',
         responseJsonSchema: RESPONSE_SCHEMA,
         temperature: 1,
       },
-    });
+      Math.max(MIN_CALL_MS, deadline - Date.now()),
+    );
   } catch (err) {
+    if (isTimeout(err)) {
+      throw new ApiError(504, 'ai_timeout', 'Gemini took too long to answer. Please try again, or select fewer locations at once.');
+    }
     const message = err instanceof Error ? err.message : String(err);
     throw new ApiError(502, 'ai_error', `Gemini request failed: ${message.slice(0, 300)}`);
   }
@@ -155,11 +202,12 @@ async function callModel(prompt: string): Promise<unknown> {
   }
 }
 
-async function generateBatch(req: VariationRequest, batch: VariationContext[]): Promise<Variation[]> {
+async function generateBatch(req: VariationRequest, batch: VariationContext[], deadline: number): Promise<Variation[]> {
   const ids = new Set(batch.map((b) => b.location_id));
   let prompt = buildPrompt(req, batch);
   for (let attempt = 0; attempt < 2; attempt++) {
-    const parsed = responseSchema.safeParse(await callModel(prompt));
+    if (attempt > 0 && deadline - Date.now() < MIN_CALL_MS) break;
+    const parsed = responseSchema.safeParse(await callModel(prompt, deadline));
     if (parsed.success) {
       const byId = new Map<string, string>();
       for (const item of parsed.data) if (ids.has(item.location_id)) byId.set(item.location_id, cleanSummary(item.summary));
@@ -167,7 +215,8 @@ async function generateBatch(req: VariationRequest, batch: VariationContext[]): 
         const i = findContentIssues(s);
         return i.phone || i.email || i.url;
       });
-      if (byId.size === ids.size && (flagged.length === 0 || attempt === 1)) {
+      const lastChance = attempt === 1 || deadline - Date.now() < MIN_CALL_MS;
+      if (byId.size === ids.size && (flagged.length === 0 || lastChance)) {
         return batch.map((b) => ({ location_id: b.location_id, summary: byId.get(b.location_id)! }));
       }
       prompt = `${buildPrompt(req, batch)}\n\nYour previous answer ${
@@ -182,6 +231,7 @@ async function generateBatch(req: VariationRequest, batch: VariationContext[]): 
 
 /** Generates one unique post per location, in batches of up to 8 locations per call. */
 export async function generateVariations(req: VariationRequest): Promise<Variation[]> {
+  const deadline = Date.now() + REQUEST_BUDGET_MS;
   const batches: VariationContext[][] = [];
   for (let i = 0; i < req.locations.length; i += BATCH_SIZE) batches.push(req.locations.slice(i, i + BATCH_SIZE));
   const results: Variation[][] = new Array(batches.length);
@@ -189,7 +239,7 @@ export async function generateVariations(req: VariationRequest): Promise<Variati
   const worker = async () => {
     while (next < batches.length) {
       const index = next++;
-      results[index] = await generateBatch(req, batches[index]!);
+      results[index] = await generateBatch(req, batches[index]!, deadline);
     }
   };
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, batches.length) }, worker));
@@ -212,11 +262,11 @@ export function fallbackHeadline(summary: string, business: string): string {
 export async function generateHeadline(summary: string, business: string): Promise<string> {
   if (!optionalEnv('GEMINI_API_KEY') || !summary.trim()) return fallbackHeadline(summary, business);
   try {
-    const response = await ai().models.generateContent({
-      model: geminiModel(),
-      contents: `Business: ${business}\nPost:\n${truncateText(summary, 1500)}`,
-      config: { systemInstruction: HEADLINE_INSTRUCTION, temperature: 0.7, maxOutputTokens: 40 },
-    });
+    const response = await generate(
+      `Business: ${business}\nPost:\n${truncateText(summary, 1500)}`,
+      { systemInstruction: HEADLINE_INSTRUCTION, temperature: 0.7, maxOutputTokens: 40 },
+      15_000,
+    );
     const text = (response.text ?? '').replace(/["“”#*_]/g, '').replace(/\s+/g, ' ').trim();
     const words = text.split(' ').filter(Boolean);
     const issues = findContentIssues(text);
