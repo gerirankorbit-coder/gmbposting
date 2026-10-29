@@ -1,3 +1,4 @@
+import { postingBlockReason } from '../../shared/posting.js';
 import { contentFingerprint } from '../../shared/content.js';
 import type { PublisherSummary } from '../../shared/types.js';
 import { logActivity, SYSTEM_ACTOR } from '../db/activity.js';
@@ -32,10 +33,17 @@ interface PublishContext {
 async function loadContext(post: PostRow): Promise<PublishContext> {
   if (!post.connection_id) throw new PermanentError('No Google account is assigned to this post. Edit it and choose a Gmail.');
   const loc = unwrap(
-    await db().from('locations').select('id, title, location_name, timezone, is_active').eq('id', post.location_id).maybeSingle(),
+    await db()
+      .from('locations')
+      .select('id, title, location_name, timezone, is_active, google_verified, client:clients(name, is_active)')
+      .eq('id', post.location_id)
+      .maybeSingle(),
     'Load location',
   );
   if (!loc) throw new PermanentError('The location no longer exists.');
+  // Last line of defence: only switched-on, verified locations of active clients publish.
+  const blocked = postingBlockReason(loc);
+  if (blocked) throw new PermanentError(`${blocked} Then retry this post.`);
   const conn = unwrap(await db().from('google_connections').select('*').eq('id', post.connection_id).maybeSingle(), 'Load connection');
   if (!conn) throw new PermanentError('The Google account for this post was removed. Edit the post and choose another Gmail.');
   if (conn.status !== 'active') {

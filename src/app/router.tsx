@@ -15,6 +15,7 @@ const DashboardPage = page(() => import('@/features/dashboard/dashboard-page'), 
 const ImportPage = page(() => import('@/features/import/import-page'), 'ImportPage');
 const ImportPreviewPage = page(() => import('@/features/import/import-preview-page'), 'ImportPreviewPage');
 const ComposePage = page(() => import('@/features/compose/compose-page'), 'ComposePage');
+const ActiveClientsPage = page(() => import('@/features/active-clients/active-clients-page'), 'ActiveClientsPage');
 const CalendarPage = page(() => import('@/features/calendar/calendar-page'), 'CalendarPage');
 const QueuePage = page(() => import('@/features/queue/queue-page'), 'QueuePage');
 const ApprovalsPage = page(() => import('@/features/approvals/approvals-page'), 'ApprovalsPage');
@@ -60,6 +61,7 @@ export const router = createBrowserRouter([
       },
       { path: 'library', element: <LibraryPage /> },
       { path: 'library/:clientId', element: <ClientLibraryPage /> },
+      { path: 'active-clients', element: <ActiveClientsPage /> },
       { path: 'locations', element: <LocationsPage /> },
       { path: 'locations/:id', element: <LocationDetailPage /> },
       { path: 'connections', element: <ConnectionsPage /> },

@@ -11,6 +11,7 @@ import {
   PenSquare,
   Settings,
   Bell,
+  UserCheck,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -26,16 +27,17 @@ export interface NavItem {
 
 export const primaryNav: NavItem[] = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/active-clients', label: 'Active Clients', icon: UserCheck },
   { to: '/import', label: 'Import', icon: FileSpreadsheet },
   { to: '/compose', label: 'Compose', icon: PenSquare },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/queue', label: 'Queue', icon: ListChecks },
-  { to: '/library', label: 'Library', icon: BookImage },
   { to: '/locations', label: 'Locations', icon: MapPin },
   { to: '/connections', label: 'Connections', icon: Link2 },
 ];
 
 export const secondaryNav: NavItem[] = [
+  { to: '/library', label: 'Library', icon: BookImage },
   { to: '/approvals', label: 'Approvals', icon: CheckCheck, role: 'manager' },
   { to: '/clients', label: 'Clients', icon: Users },
   { to: '/notifications', label: 'Notifications', icon: Bell },

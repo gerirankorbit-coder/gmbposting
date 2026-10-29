@@ -24,7 +24,14 @@ export interface GbpLocation {
   };
   websiteUri?: string;
   categories?: { primaryCategory?: { name?: string; displayName?: string } };
-  metadata?: { mapsUri?: string; placeId?: string; newReviewUri?: string };
+  metadata?: {
+    mapsUri?: string;
+    placeId?: string;
+    newReviewUri?: string;
+    /** Verified and in good standing. Proto3 JSON omits false values. */
+    hasVoiceOfMerchant?: boolean;
+    canOperateLocalPost?: boolean;
+  };
 }
 
 /** Lists every location of an account. An empty `{}` response means zero locations. */
@@ -45,6 +52,16 @@ export interface NormalizedLocation {
   website_uri: string | null;
   maps_uri: string | null;
   place_id: string | null;
+  google_verified: boolean | null;
+}
+
+/**
+ * Unverified, pending-verification and suspended profiles cannot take posts. Google omits false
+ * flags from JSON, so a missing flag means false, but no metadata at all means "unknown".
+ */
+export function googleVerified(loc: GbpLocation): boolean | null {
+  if (!loc.metadata) return null;
+  return loc.metadata.hasVoiceOfMerchant === true || loc.metadata.canOperateLocalPost === true;
 }
 
 /** Maps a Business Information location to our `locations` columns. */
@@ -71,6 +88,7 @@ export function normalizeLocation(loc: GbpLocation): NormalizedLocation {
     website_uri: loc.websiteUri ?? null,
     maps_uri: loc.metadata?.mapsUri ?? null,
     place_id: loc.metadata?.placeId ?? null,
+    google_verified: googleVerified(loc),
   };
 }
 

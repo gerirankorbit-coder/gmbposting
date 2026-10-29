@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { contentWarnings } from '../../../shared/content';
+import { postingBlockReason } from '../../../shared/posting';
 import type { PostDraftInput } from '../../../shared/schemas';
 import { spreadSchedule, zonedWallToUtc } from '../../../shared/schedule';
 import { POST_SUMMARY_MAX, type CtaType, type LibraryImageDTO, type LocationDTO, type TopicType, type UploadedImageDTO } from '../../../shared/types';
@@ -106,6 +107,8 @@ export function validateCompose(state: ComposeState, locById: Map<string, Locati
   for (const id of state.selected) {
     const loc = locById.get(id);
     if (!loc) return { step: 0, message: 'A selected location is no longer available.' };
+    const blocked = postingBlockReason(loc);
+    if (blocked) return { step: 0, message: `${blocked} Remove it from the selection.` };
     if (!state.connections[id]) return { step: 0, message: `Choose a Gmail for ${loc.title}.` };
   }
   if (state.topicType !== 'STANDARD') {

@@ -7,6 +7,8 @@ export interface CtxLocation extends MatchableLocation {
   location_name: string;
   timezone: string;
   is_active: boolean;
+  google_verified: boolean | null;
+  client_active: boolean;
   website_uri: string | null;
   client_name: string | null;
   default_cta_url: string | null;
@@ -35,7 +37,7 @@ export async function loadMatchContext(): Promise<MatchContext> {
     db().from('google_connections').select('id, email, status'),
     db()
       .from('locations')
-      .select('id, location_name, title, city, address_text, service_area_text, timezone, is_active, website_uri, client:clients(name, default_cta_url)')
+      .select('id, location_name, title, city, address_text, service_area_text, timezone, is_active, google_verified, website_uri, client:clients(name, is_active, default_cta_url)')
       .limit(20000),
     db().from('location_access').select('location_id, connection_id, account_name').limit(50000),
   ]);
@@ -60,6 +62,8 @@ export async function loadMatchContext(): Promise<MatchContext> {
       service_area_text: l.service_area_text,
       timezone: l.timezone,
       is_active: l.is_active,
+      google_verified: l.google_verified,
+      client_active: l.client?.is_active ?? false,
       website_uri: l.website_uri,
       client_name: l.client?.name ?? null,
       default_cta_url: l.client?.default_cta_url ?? null,

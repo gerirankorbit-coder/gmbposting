@@ -49,7 +49,7 @@ export function Navbar({ notificationSlot }: { notificationSlot?: React.ReactNod
                 end={item.to === '/'}
                 className={({ isActive: active }) =>
                   cn(
-                    'rounded-full px-3 py-2 text-sm font-semibold transition-colors',
+                    'whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-colors',
                     active
                       ? 'bg-orbit-gradient text-white shadow-glow'
                       : 'text-orbit-body hover:bg-orbit-primary/10 hover:text-orbit-primary',

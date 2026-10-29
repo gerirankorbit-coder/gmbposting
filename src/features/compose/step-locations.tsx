@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Search, X } from 'lucide-react';
+import { Ban, Search, X } from 'lucide-react';
+import { postingBlockReason } from '../../../shared/posting';
 import type { ClientDTO, LocationDTO } from '../../../shared/types';
 import { ClientDot } from '@/components/app/client-dot';
 import { Button } from '@/components/ui/button';
@@ -25,10 +26,11 @@ export function StepLocations({
 }) {
   const [search, setSearch] = useState('');
   const [clientId, setClientId] = useState(ALL);
+  const [showBlocked, setShowBlocked] = useState(false);
   const selected = useMemo(() => new Set(state.selected), [state.selected]);
   const byId = useMemo(() => new Map(locations.map((l) => [l.id, l])), [locations]);
 
-  const filtered = useMemo(() => {
+  const matching = useMemo(() => {
     const q = search.trim().toLowerCase();
     return locations.filter(
       (l) =>
@@ -36,6 +38,10 @@ export function StepLocations({
         (!q || `${l.title} ${l.city ?? ''} ${l.address_text ?? ''} ${l.client?.name ?? ''}`.toLowerCase().includes(q)),
     );
   }, [locations, search, clientId]);
+  // Only locations of active clients that Google lets us post on can be picked.
+  const blockedReason = useMemo(() => new Map(locations.map((l) => [l.id, postingBlockReason(l)])), [locations]);
+  const filtered = useMemo(() => matching.filter((l) => !blockedReason.get(l.id)), [matching, blockedReason]);
+  const blocked = useMemo(() => matching.filter((l) => blockedReason.get(l.id)), [matching, blockedReason]);
 
   const setSelection = (ids: string[]) => {
     const connections = { ...state.connections };
@@ -96,7 +102,9 @@ export function StepLocations({
           )}
         </div>
         <ul className="mt-3 max-h-[420px] space-y-1 overflow-y-auto rounded-2xl border border-orbit-line bg-white/60 p-1.5" aria-label="Locations">
-          {filtered.length === 0 && <li className="p-6 text-center text-sm text-orbit-muted">No active locations match.</li>}
+          {filtered.length === 0 && (
+            <li className="p-6 text-center text-sm text-orbit-muted">No locations of active clients match.</li>
+          )}
           {filtered.slice(0, RENDER_LIMIT).map((l) => (
             <li key={l.id}>
               <label
@@ -120,6 +128,23 @@ export function StepLocations({
             </li>
           )}
         </ul>
+        {blocked.length > 0 && (
+          <div className="mt-3">
+            <Button variant="ghost" size="sm" onClick={() => setShowBlocked((v) => !v)} aria-expanded={showBlocked}>
+              <Ban /> {showBlocked ? 'Hide' : 'Show'} {blocked.length.toLocaleString()} location{blocked.length === 1 ? '' : 's'} that can't be posted
+            </Button>
+            {showBlocked && (
+              <ul className="mt-2 max-h-72 space-y-1 overflow-y-auto rounded-2xl border border-dashed border-orbit-line p-1.5" aria-label="Locations that can't be posted">
+                {blocked.slice(0, RENDER_LIMIT).map((l) => (
+                  <li key={l.id} className="rounded-xl px-2.5 py-2">
+                    <span className="block wrap-anywhere text-sm font-semibold text-orbit-muted">{l.title}</span>
+                    <span className="block wrap-anywhere text-xs text-amber-700">{blockedReason.get(l.id)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="publish-as">

@@ -161,6 +161,11 @@ export interface ClientRef {
   color: string;
 }
 
+/** A location's client, with the flag that decides whether its locations may post. */
+export interface LocationClientRef extends ClientRef {
+  is_active: boolean;
+}
+
 export interface LocationAccessDTO {
   connection_id: string;
   account_name: string;
@@ -185,7 +190,9 @@ export interface LocationDTO {
   last_post_at: string | null;
   synced_at: string | null;
   default_connection_id: string | null;
-  client: ClientRef | null;
+  /** Verified and in good standing on Google; false = can't take posts; null = unknown. */
+  google_verified: boolean | null;
+  client: LocationClientRef | null;
   access: LocationAccessDTO[];
 }
 
@@ -464,3 +471,29 @@ export interface DashboardDTO {
   image_stock: ClientStockDTO[];
   activity: ActivityDTO[];
 }
+
+/** Where a location stands for the chosen period on the Active Clients page. */
+export type PostingState = 'posted' | 'scheduled' | 'pending_approval' | 'draft' | 'failed' | 'not_posted' | 'cant_post';
+
+export interface PostingStatusLocation {
+  id: string;
+  title: string;
+  city: string | null;
+  state: PostingState;
+  /** Why it is not posted (error, verification, reconnect…); null when posted. */
+  reason: string | null;
+  /** For `cant_post`: what blocks it. */
+  block: 'location_off' | 'unverified' | 'reconnect' | null;
+  last_published_at: string | null;
+  google_url: string | null;
+  next_scheduled_at: string | null;
+  maps_uri: string | null;
+}
+
+export interface PostingStatusClient {
+  id: string;
+  name: string;
+  color: string;
+  locations: PostingStatusLocation[];
+}
+

@@ -1,5 +1,6 @@
 import type { PostDraft, PostSubmitMode } from '../../shared/schemas.js';
 import type { PostStatus } from '../../shared/types.js';
+import { postingBlockReason } from '../../shared/posting.js';
 import { chunk, unwrap } from '../db/helpers.js';
 import { getSettings } from '../db/settings.js';
 import { db } from '../db/supabase.js';
@@ -33,6 +34,8 @@ interface LocationInfo {
   title: string;
   website_uri: string | null;
   is_active: boolean;
+  google_verified: boolean | null;
+  client: { name: string; is_active: boolean } | null;
   client_id: string | null;
   default_cta_url: string | null;
 }
@@ -53,7 +56,7 @@ export async function createPosts(opts: CreatePostsOptions): Promise<{ ids: stri
       await db()
         .from('locations')
         .select(
-          'id, title, website_uri, is_active, client_id, client:clients(default_cta_url), access:location_access(connection_id, account_name, connection:google_connections(status, email))',
+          'id, title, website_uri, is_active, google_verified, client_id, client:clients(name, is_active, default_cta_url), access:location_access(connection_id, account_name, connection:google_connections(status, email))',
         )
         .in('id', ids),
       'Load locations',
@@ -63,6 +66,8 @@ export async function createPosts(opts: CreatePostsOptions): Promise<{ ids: stri
         title: r.title,
         website_uri: r.website_uri,
         is_active: r.is_active,
+        google_verified: r.google_verified,
+        client: r.client ? { name: r.client.name, is_active: r.client.is_active } : null,
         client_id: r.client_id,
         default_cta_url: r.client?.default_cta_url ?? null,
       });
@@ -97,7 +102,9 @@ export async function createPosts(opts: CreatePostsOptions): Promise<{ ids: stri
     const label = opts.posts.length > 1 ? `Post ${index + 1}: ` : '';
     const loc = locations.get(p.location_id);
     if (!loc) throw badRequest(`${label}the location no longer exists.`);
-    if (!loc.is_active) throw badRequest(`${label}${loc.title} is inactive.`);
+    // Drafts may be saved for anyone; anything that can publish needs a postable location.
+    const blocked = opts.mode === 'draft' ? null : postingBlockReason(loc);
+    if (blocked) throw badRequest(`${label}${blocked}`);
     const acc = access.get(`${p.location_id}:${p.connection_id}`);
     if (!acc) throw badRequest(`${label}the chosen Gmail cannot manage ${loc.title}.`);
     if (acc.status !== 'active' && opts.mode !== 'draft') {

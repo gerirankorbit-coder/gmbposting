@@ -124,13 +124,17 @@ Vercel Hobby cron jobs can only run once a day, so Supabase triggers the publish
 3. **Locations**: time zones are filled in from each address on sync (check them; a zone you
    change by hand is never overwritten), deactivate profiles you do not manage, set a default Gmail
    where several Gmails manage the same business.
-4. **Clients**: rename or merge the auto-created clients; add brand voice and default link.
-   Mark clients you no longer serve as inactive.
-5. **Library → each client → Brand kit**: logo, colours, tagline, preferred templates.
-6. **Library → Upload images** for each client (files or a ZIP).
-7. **Settings**: approval on/off, posts per run, spacing.
-8. **Import → Download template**, fill it in, upload, review, commit.
-9. Approve the posts (if approval is on) and watch them publish on the **Calendar** / **Queue**.
+4. **Activate the clients you post for.** Clients created by a Google sync start **inactive**, and
+   nothing is ever published for an inactive client (or for a profile Google reports as unverified
+   or suspended). On **Locations**, search the client's name and click **Activate** (or select rows
+   and use **Activate clients**). **Active Clients** then shows, per period, which of their
+   locations got a post and why the others did not.
+5. **Clients**: rename or merge the auto-created clients; add brand voice and default link.
+6. **Library → each client → Brand kit**: logo, colours, tagline, preferred templates.
+7. **Library → Upload images** for each client (files or a ZIP).
+8. **Settings**: approval on/off, posts per run, spacing.
+9. **Import → Download template**, fill it in, upload, review, commit.
+10. Approve the posts (if approval is on) and watch them publish on the **Calendar** / **Queue**.
 
 # Local development
 

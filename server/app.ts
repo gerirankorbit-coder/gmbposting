@@ -9,6 +9,7 @@ import { activityRoutes, settingsRoutes, teamRoutes } from './routes/admin.js';
 import { aiRoutes } from './routes/ai.js';
 import { clientRoutes } from './routes/clients.js';
 import { cronRoutes, publisherRoutes } from './routes/cron.js';
+import { postingStatusRoutes } from './routes/posting-status.js';
 import { connectionRoutes } from './routes/connections.js';
 import { dashboardRoutes } from './routes/dashboard.js';
 import { googleCallbackRoutes, googleRoutes } from './routes/google.js';
@@ -97,5 +98,6 @@ app.route('/library', libraryRoutes);
 app.route('/notifications', notificationRoutes);
 app.route('/imports', importRoutes);
 app.route('/publisher', publisherRoutes);
+app.route('/posting-status', postingStatusRoutes);
 
 export type AppType = typeof app;

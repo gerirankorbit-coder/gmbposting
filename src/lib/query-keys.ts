@@ -8,6 +8,8 @@ export const qk = {
   locations: (params: object) => ['locations', 'list', params] as const,
   locationsAll: ['locations'] as const,
   locationOptions: ['locations', 'options'] as const,
+  postingStatusAll: ['posting-status'] as const,
+  postingStatus: (since: string, search: string) => ['posting-status', since, search] as const,
   location: (id: string) => ['locations', 'detail', id] as const,
   locationPosts: (id: string, page: number) => ['locations', 'posts', id, page] as const,
   postsAll: ['posts'] as const,
