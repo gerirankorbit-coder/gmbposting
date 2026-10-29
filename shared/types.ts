@@ -255,6 +255,8 @@ export interface CreatePostsResult {
   created: number;
   status: PostStatus;
   post_ids: string[];
+  /** Only for mode `publish_now`: what happened to these posts in the immediate publisher run. */
+  publish?: { published: number; failed: number; queued: number };
 }
 
 export interface PostListItemDTO extends PostDTO {

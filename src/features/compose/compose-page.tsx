@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { ArrowLeft, ArrowRight, Check, CheckCheck, Loader2, MapPin, Save, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCheck, Loader2, MapPin, Save, Send, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import type { CreatePostsInput, PostSubmitMode } from '../../../shared/schemas';
 import type { AppSettings, CreatePostsResult } from '../../../shared/types';
@@ -65,6 +65,7 @@ export function ComposePage() {
   }, [locById, params]);
 
   const problem = validateCompose(state, locById);
+  const canPublishNow = canApprove && state.scheduleMode === 'asap';
   const selectedClients = new Set(state.selected.map((id) => locById.get(id)?.client?.id ?? null));
   const sharedClientId = selectedClients.size === 1 ? ([...selectedClients][0] ?? null) : null;
   const stepBlocked = (s: number) => !!problem && problem.step <= s;
@@ -83,6 +84,17 @@ export function ComposePage() {
       return api.post<CreatePostsResult>('/posts', body);
     },
     onSuccess: (r) => {
+      if (r.publish) {
+        const { published, failed, queued } = r.publish;
+        const parts = [`${published} published`];
+        if (failed) parts.push(`${failed} failed`);
+        if (queued) parts.push(`${queued} still in the queue (they go out within 5 minutes)`);
+        (failed ? toast.warning : toast.success)(`Publish now: ${parts.join(', ')}`, {
+          description: failed ? 'Open the Queue to see why; temporary errors are retried automatically.' : undefined,
+        });
+        navigate('/queue');
+        return;
+      }
       const label =
         r.status === 'draft' ? 'saved as drafts' : r.status === 'pending_approval' ? 'submitted for approval' : 'scheduled';
       toast.success(`${r.created} post${r.created === 1 ? '' : 's'} ${label}`);
@@ -216,9 +228,23 @@ export function ComposePage() {
                     {approvalRequired ? 'Submit for approval' : 'Schedule'}
                   </Button>
                   {canApprove && approvalRequired && (
-                    <Button disabled={submit.isPending || !!problem} onClick={() => submit.mutate('approve')}>
+                    <Button
+                      variant={canPublishNow ? 'secondary' : 'default'}
+                      disabled={submit.isPending || !!problem}
+                      onClick={() => submit.mutate('approve')}
+                    >
                       {submit.isPending && submit.variables === 'approve' ? <Loader2 className="animate-spin" /> : <CheckCheck />}
                       Approve &amp; schedule
+                    </Button>
+                  )}
+                  {canPublishNow && (
+                    <Button
+                      disabled={submit.isPending || !!problem}
+                      onClick={() => submit.mutate('publish_now')}
+                      title="Approve and publish to Google right away"
+                    >
+                      {submit.isPending && submit.variables === 'publish_now' ? <Loader2 className="animate-spin" /> : <Zap />}
+                      {submit.isPending && submit.variables === 'publish_now' ? 'Publishing…' : 'Publish now'}
                     </Button>
                   )}
                 </>

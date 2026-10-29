@@ -21,7 +21,7 @@ export interface CreatePostsOptions {
 
 export function statusForMode(mode: PostSubmitMode, approvalRequired: boolean): PostStatus {
   if (mode === 'draft') return 'draft';
-  if (mode === 'approve') return 'scheduled';
+  if (mode === 'approve' || mode === 'publish_now') return 'scheduled';
   return approvalRequired ? 'pending_approval' : 'scheduled';
 }
 
@@ -91,6 +91,7 @@ export async function createPosts(opts: CreatePostsOptions): Promise<{ ids: stri
   }
 
   const now = new Date().toISOString();
+  const approved = opts.mode === 'approve' || opts.mode === 'publish_now';
   const rows: InsertOfTable<'posts'>[] = [];
   opts.posts.forEach((p, index) => {
     const label = opts.posts.length > 1 ? `Post ${index + 1}: ` : '';
@@ -151,8 +152,8 @@ export async function createPosts(opts: CreatePostsOptions): Promise<{ ids: stri
         status,
         scheduled_at: shift(scheduledAt, week),
         created_by: opts.actorId,
-        approved_by: opts.mode === 'approve' ? opts.actorId : null,
-        approved_at: opts.mode === 'approve' ? now : null,
+        approved_by: approved ? opts.actorId : null,
+        approved_at: approved ? now : null,
       });
     }
   });

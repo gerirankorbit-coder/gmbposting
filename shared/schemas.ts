@@ -175,7 +175,8 @@ export const postDraftSchema = z
 export type PostDraftInput = z.input<typeof postDraftSchema>;
 export type PostDraft = z.output<typeof postDraftSchema>;
 
-export const POST_SUBMIT_MODES = ['draft', 'submit', 'approve'] as const;
+/** `publish_now` approves the posts and runs the publisher straight away (managers and admins). */
+export const POST_SUBMIT_MODES = ['draft', 'submit', 'approve', 'publish_now'] as const;
 export type PostSubmitMode = (typeof POST_SUBMIT_MODES)[number];
 
 export const createPostsSchema = z.object({
