@@ -114,8 +114,9 @@ Vercel Hobby cron jobs can only run once a day, so Supabase triggers the publish
    select status_code, created, left(content::text, 200) from net._http_response order by created desc limit 5;
    ```
    `200` with `{"processed":…}` means it works. `401` = wrong secret, `404` = wrong URL.
-4. Safety nets: `vercel.json` also calls the publisher and the daily maintenance once a day, and
-   admins can press **Settings → Run publisher now** at any time.
+4. Safety nets: `vercel.json` also calls the publisher and the daily maintenance once a day.
+   To send posts right away, managers use **Publish now** in Compose; a failed post has
+   **Retry now**.
 
 # First-run checklist
 
@@ -321,4 +322,5 @@ Every rule is enforced on the server; the UI only hides actions a role cannot ta
   the next run. The response is `{ processed, published, failed, remaining }`.
 - `GET|POST /api/cron/daily`: library stock check, rolling Google account sync, email digest.
 - Triggers: `supabase/cron.sql` (pg_cron every 5 minutes + daily), the daily Vercel crons in
-  `vercel.json` as a safety net, and **Run publisher now** for admins (Settings).
+  `vercel.json` as a safety net, **Publish now** in Compose, and `POST /api/publisher/run`
+  (admin session) for a manual run.

@@ -7,7 +7,6 @@ import { Bubbles } from '@/components/layout/orbit-decor';
 import { Button } from '@/components/ui/button';
 import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { Navbar } from '@/components/layout/navbar';
-import { NewPostFab } from '@/components/layout/new-post-fab';
 import { PageSkeleton } from '@/components/page-skeleton';
 import { useMe } from './auth';
 import { useSystemAlerts } from './system-alerts';
@@ -79,7 +78,6 @@ function SignedInShell() {
           <Outlet />
         </Suspense>
       </main>
-      <NewPostFab />
     </div>
   );
 }

@@ -12,14 +12,12 @@ import {
   FileEdit,
   Hourglass,
   PenSquare,
-  PowerOff,
   Search,
   Users,
   XCircle,
   type LucideIcon,
 } from 'lucide-react';
 import type { PostingState, PostingStatusClient, PostingStatusLocation } from '../../../shared/types';
-import { useHasRole } from '@/app/auth';
 import { api } from '@/lib/api';
 import { formatLocal, timeAgo } from '@/lib/format';
 import { qk } from '@/lib/query-keys';
@@ -34,7 +32,6 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSetClientsActive } from '@/features/locations/client-status';
 
 type Period = 'today' | '7d' | 'month' | '30d';
 type Filter = 'all' | 'posted' | 'not_posted' | 'failed' | 'cant_post';
@@ -72,7 +69,6 @@ const FILTERS: { value: Filter; label: string; match: (s: PostingState) => boole
 ];
 
 export function ActiveClientsPage() {
-  const canManage = useHasRole('manager');
   const [params, setParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(params.get('search') ?? '');
   const search = useDebounce(searchInput.trim(), 300);
@@ -202,7 +198,7 @@ export function ActiveClientsPage() {
             <EmptyState icon={CheckCircle2} title="Nothing in this filter" description="Every location of these clients is in another group." />
           </Card>
         ) : (
-          visible.map((c) => <ClientCard key={c.id} client={c} total={all.find((x) => x.id === c.id)!.locations} canManage={canManage} />)
+          visible.map((c) => <ClientCard key={c.id} client={c} total={all.find((x) => x.id === c.id)!.locations} />)
         )}
       </div>
     </>
@@ -212,13 +208,10 @@ export function ActiveClientsPage() {
 function ClientCard({
   client,
   total,
-  canManage,
 }: {
   client: PostingStatusClient;
   total: PostingStatusLocation[];
-  canManage: boolean;
 }) {
-  const setActive = useSetClientsActive();
   const posted = total.filter((l) => l.state === 'posted').length;
   const pct = total.length ? Math.round((posted / total.length) * 100) : 0;
   return (
@@ -242,20 +235,6 @@ function ClientCard({
               <PenSquare /> Compose
             </Link>
           </Button>
-          {canManage && (
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={setActive.isPending}
-              onClick={() => {
-                if (window.confirm(`Deactivate ${client.name}? Nothing will be posted for it until it is activated again.`)) {
-                  setActive.mutate({ ids: [client.id], active: false });
-                }
-              }}
-            >
-              <PowerOff /> Deactivate
-            </Button>
-          )}
         </div>
       </div>
 

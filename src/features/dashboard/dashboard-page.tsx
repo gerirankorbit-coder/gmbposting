@@ -1,33 +1,27 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  AlertTriangle,
   ArrowRight,
   BookImage,
   CalendarClock,
   CheckCircle2,
-  CheckCheck,
-  FileSpreadsheet,
   Link2,
   MapPin,
-  PenSquare,
-  Send,
   Upload,
   XCircle,
   type LucideIcon,
 } from 'lucide-react';
 import type { DashboardDTO } from '../../../shared/types';
-import { useHasRole, useMe } from '@/app/auth';
+import { useMe } from '@/app/auth';
 import { api } from '@/lib/api';
-import { daysSince, formatLocal, pluralize } from '@/lib/format';
+import { formatLocal } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { ClientDot } from '@/components/app/client-dot';
 import { ErrorState } from '@/components/app/error-state';
 import { PostStatusBadge } from '@/components/app/status-badge';
 import { ZonedTime } from '@/components/app/zoned-time';
 import { PageHeader } from '@/components/layout/page-header';
 import { PageSkeleton } from '@/components/page-skeleton';
-import { Button, ButtonChip } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ActivityItem } from '@/features/activity/activity-page';
 import { ClientAvatar } from '@/features/library/library-page';
@@ -53,7 +47,6 @@ function StatCard({ label, value, icon: Icon, to, tone, hint }: { label: string;
 
 export function DashboardPage() {
   const { data: me } = useMe();
-  const isManager = useHasRole('manager');
   const ui = usePostUi();
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['dashboard'],
@@ -80,49 +73,14 @@ export function DashboardPage() {
         highlight={firstName ?? 'Control'}
         description="Your agency's posting at a glance."
         bubbles
-        actions={
-          <Button asChild>
-            <Link to="/compose">
-              New post
-              <ButtonChip>
-                <ArrowRight />
-              </ButtonChip>
-            </Link>
-          </Button>
-        }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Connected Gmails" value={s.connections} icon={Link2} to="/connections" tone="bg-violet-50 text-violet-600" hint={s.connections_needing_reauth ? `${s.connections_needing_reauth} need reconnecting` : 'All healthy'} />
-        <StatCard label="Locations" value={s.locations} icon={MapPin} to="/locations" tone="bg-fuchsia-50 text-fuchsia-600" hint={`${data.stale_count} need a post`} />
+        <StatCard label="Locations" value={s.locations} icon={MapPin} to="/active-clients?period=7d&filter=not_posted" tone="bg-fuchsia-50 text-fuchsia-600" hint={`${data.stale_count} of active clients need a post`} />
         <StatCard label="Scheduled · 7 days" value={s.scheduled_this_week} icon={CalendarClock} to="/calendar" tone="bg-violet-50 text-violet-600" hint={s.pending_approval ? `${s.pending_approval} awaiting approval` : undefined} />
         <StatCard label="Published · month" value={s.published_this_month} icon={CheckCircle2} to="/queue?status=published" tone="bg-emerald-50 text-emerald-600" />
         <StatCard label="Failed" value={s.failed} icon={XCircle} to="/queue?status=failed" tone="bg-rose-50 text-rose-600" hint={s.failed ? 'Needs attention' : 'Nothing failing'} />
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-2">
-        <Button asChild variant="secondary" size="sm">
-          <Link to="/import">
-            <FileSpreadsheet /> Import spreadsheet
-          </Link>
-        </Button>
-        <Button asChild variant="secondary" size="sm">
-          <Link to="/compose">
-            <PenSquare /> Compose
-          </Link>
-        </Button>
-        {isManager && s.pending_approval > 0 && (
-          <Button asChild variant="secondary" size="sm">
-            <Link to="/approvals">
-              <CheckCheck /> Review {pluralize(s.pending_approval, 'post')}
-            </Link>
-          </Button>
-        )}
-        <Button asChild variant="secondary" size="sm">
-          <Link to="/library">
-            <Upload /> Add images
-          </Link>
-        </Button>
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-3">
@@ -207,47 +165,7 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="xl:col-span-2">
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden /> Needs a post
-              <span className="text-sm font-semibold text-orbit-muted">(no post in 7+ days)</span>
-            </CardTitle>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/locations?staleDays=7">
-                All {data.stale_count} <ArrowRight />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {!data.stale_locations.length ? (
-              <p className="py-8 text-center text-sm text-orbit-muted">Every active location posted in the last 7 days.</p>
-            ) : (
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {data.stale_locations.map((l) => (
-                  <li key={l.id} className="flex items-center gap-3 rounded-2xl border border-amber-200/70 bg-amber-50/50 p-3">
-                    <div className="min-w-0 flex-1">
-                      <Link to={`/locations/${l.id}`} className="block wrap-anywhere text-sm font-bold text-orbit-heading hover:text-orbit-primary">
-                        {l.title}
-                      </Link>
-                      <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-orbit-muted">
-                        <ClientDot client={l.client} className="text-xs font-medium" />
-                        <span>{l.last_post_at ? `${daysSince(l.last_post_at)}d ago` : 'never posted'}</span>
-                      </p>
-                    </div>
-                    <Button asChild size="sm" variant="outline">
-                      <Link to={`/compose?locations=${l.id}`}>
-                        <Send /> Post
-                      </Link>
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
+        <Card className="xl:col-span-3">
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle>Recent activity</CardTitle>
             <Button asChild variant="ghost" size="sm">

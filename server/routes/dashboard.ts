@@ -31,7 +31,16 @@ export const dashboardRoutes = new Hono<AuthEnv>().get('/', async (c) => {
     count(db().from('posts').select('id', head).eq('status', 'published').gte('published_at', monthStart), 'Count published'),
     count(db().from('posts').select('id', head).eq('status', 'failed'), 'Count failed'),
     count(db().from('posts').select('id', head).eq('status', 'pending_approval'), 'Count pending'),
-    count(db().from('locations').select('id', head).eq('is_active', true).or(`last_post_at.is.null,last_post_at.lt.${staleCutoff}`), 'Count stale'),
+    // Same population as Active Clients: switched-on locations of active clients.
+    count(
+      db()
+        .from('locations')
+        .select('id, client:clients!inner(is_active)', head)
+        .eq('is_active', true)
+        .eq('client.is_active', true)
+        .or(`last_post_at.is.null,last_post_at.lt.${staleCutoff}`),
+      'Count stale',
+    ),
   ]);
 
   const [upcoming, stale, clients, activity] = await Promise.all([
