@@ -42,6 +42,11 @@ const LABELS: Record<string, string> = {
   'maintenance.daily': 'ran daily maintenance',
   'settings.updated': 'changed settings',
   'team.role_changed': 'changed a team role',
+  'team.invited': 'invited a team member',
+  'team.invite_revoked': 'revoked an invitation',
+  'team.access_granted': 'gave a team member access',
+  'team.access_removed': 'removed a team member\'s access',
+  'posts.published_now': 'published posts now',
 };
 
 export function activityLabel(action: string): string {

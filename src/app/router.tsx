@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
-import { SignInPage } from '@/features/auth/sign-in-page';
+import { SignInPage, SignUpPage } from '@/features/auth/sign-in-page';
 import { NotFoundPage } from '@/features/misc/not-found-page';
 import { AppLayout } from './layout';
 import { RoleGate } from './role-gate';
@@ -39,6 +39,7 @@ const SettingsPage = page(() => import('@/features/settings/settings-page'), 'Se
 
 export const router = createBrowserRouter([
   { path: '/sign-in/*', element: <SignInPage />, errorElement: <RouteError /> },
+  { path: '/sign-up/*', element: <SignUpPage />, errorElement: <RouteError /> },
   {
     element: <AppLayout />,
     errorElement: <RouteError />,

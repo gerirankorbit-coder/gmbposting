@@ -58,7 +58,9 @@ export function Providers({ children, publishableKey }: { children: ReactNode; p
       publishableKey={publishableKey}
       appearance={clerkAppearance}
       signInUrl="/sign-in"
+      signUpUrl="/sign-up"
       signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
       afterSignOutUrl="/sign-in"
     >
       <AuthTokenBridge />
