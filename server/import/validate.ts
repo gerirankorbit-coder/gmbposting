@@ -1,3 +1,4 @@
+import { postingBlockReason } from '../../shared/posting.js';
 import { contentFingerprint, contentWarnings } from '../../shared/content.js';
 import {
   parseCtaType,
@@ -125,8 +126,14 @@ export function validateRow(
       }
     }
   }
-  if (location && !location.is_active) {
-    errors.push(`${location.title} is inactive in OrbitPost. Activate it on the Locations page.`);
+  if (location) {
+    const blocked = postingBlockReason({
+      title: location.title,
+      is_active: location.is_active,
+      google_verified: location.google_verified,
+      client: location.client_name ? { name: location.client_name, is_active: location.client_active } : null,
+    });
+    if (blocked) errors.push(blocked);
   }
   if (location) {
     resolved.timezone = location.timezone;

@@ -97,6 +97,8 @@ export type LocationRow = {
   timezone: string;
   /** default = workspace default, auto = inferred from the address on sync, manual = set by the team */
   timezone_source: 'default' | 'auto' | 'manual';
+  /** Verified and in good standing on Google (can take posts); null = unknown. */
+  google_verified: boolean | null;
   is_active: boolean;
   last_post_at: string | null;
   synced_at: string | null;

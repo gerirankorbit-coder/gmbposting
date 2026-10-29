@@ -6,8 +6,8 @@ import {
   paginationQuerySchema,
 } from '../../shared/schemas.js';
 import type {
-  ClientRef,
   HistoryImportResult,
+  LocationClientRef,
   LocationAccessDTO,
   LocationDTO,
   Paginated,
@@ -27,8 +27,8 @@ import { fromGoogleDateTime, listLocalPosts } from '../google/posts.js';
 const LOCATION_SELECT = `
   id, location_name, title, address_text, city, service_area_text, primary_category,
   website_uri, maps_uri, place_id, timezone, is_active, last_post_at, synced_at,
-  default_connection_id,
-  client:clients(id, name, color),
+  default_connection_id, google_verified,
+  client:clients(id, name, color, is_active),
   access:location_access(connection_id, account_name, role, connection:google_connections(email, status))
 ` as const;
 
@@ -48,7 +48,8 @@ interface RawLocation {
   last_post_at: string | null;
   synced_at: string | null;
   default_connection_id: string | null;
-  client: ClientRef | null;
+  google_verified: boolean | null;
+  client: LocationClientRef | null;
   access: Array<{
     connection_id: string;
     account_name: string;
@@ -67,7 +68,7 @@ function toLocationDTO(r: RawLocation): LocationDTO {
       email: a.connection!.email,
       status: a.connection!.status,
     }));
-  const { access: _ignored, ...rest } = r;
+  const { access: _ignored, access_filter: _a, client_filter: _c, ...rest } = r as RawLocation & { access_filter?: unknown; client_filter?: unknown };
   return { ...rest, access };
 }
 
@@ -97,14 +98,19 @@ export const locationRoutes = new Hono<AuthEnv>()
     const q = parseQuery(c, locationListQuerySchema);
     // When filtering by connection, an inner-joined alias restricts rows without trimming the
     // `access` list shown in the UI.
-    const select = q.connectionId
-      ? `${LOCATION_SELECT}, access_filter:location_access!inner(connection_id)`
-      : LOCATION_SELECT;
+    let select: string = LOCATION_SELECT;
+    if (q.connectionId) select += ', access_filter:location_access!inner(connection_id)';
+    if (q.clientStatus !== 'all') select += ', client_filter:clients!inner(is_active)';
     let query = db().from('locations').select(select, { count: 'exact' });
     if (q.connectionId) query = query.eq('access_filter.connection_id', q.connectionId);
+    if (q.clientStatus !== 'all') query = query.eq('client_filter.is_active', q.clientStatus === 'active');
+    if (q.verification === 'unverified') query = query.eq('google_verified', false);
     if (q.search) {
       const p = ilikePattern(q.search);
-      query = query.or(`title.ilike.${p},city.ilike.${p},address_text.ilike.${p},primary_category.ilike.${p}`);
+      // Search also matches the client's name, so a client can be found (and activated) here.
+      const clients = unwrap(await db().from('clients').select('id').ilike('name', p).limit(500), 'Search clients');
+      const byClient = clients.length ? `,client_id.in.(${clients.map((cl) => cl.id).join(',')})` : '';
+      query = query.or(`title.ilike.${p},city.ilike.${p},address_text.ilike.${p},primary_category.ilike.${p}${byClient}`);
     }
     if (q.clientId === 'none') query = query.is('client_id', null);
     else if (q.clientId) query = query.eq('client_id', q.clientId);

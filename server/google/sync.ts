@@ -42,7 +42,9 @@ async function assignClients(locations: Pick<LocationRow, 'id' | 'title' | 'clie
       const client = unwrapOne(
         await db()
           .from('clients')
-          .insert({ name: loc.title.trim(), color: pickColor(key) })
+          // Clients found through a Google sync start inactive: nothing posts for them until the
+          // team activates them.
+          .insert({ name: loc.title.trim(), color: pickColor(key), is_active: false })
           .select('id')
           .single(),
         'Create client',

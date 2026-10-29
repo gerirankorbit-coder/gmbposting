@@ -24,7 +24,6 @@ import { useDebounce } from '@/lib/use-debounce';
 import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/layout/page-header';
 import { EmptyState } from '@/components/empty-state';
-import { ClientDot } from '@/components/app/client-dot';
 import { ErrorState } from '@/components/app/error-state';
 import { Pagination } from '@/components/app/pagination';
 import { TimezoneSelect } from '@/components/app/timezone-select';
@@ -46,6 +45,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { LastPostCell } from './last-post-cell';
 import { LocationEditDialog } from './location-edit-dialog';
+import { ClientStatusCell, UnverifiedBadge, useSetClientsActive } from './client-status';
 import { useBulkUpdateLocations, useUpdateLocation } from './use-location-actions';
 
 const ALL = 'all';
@@ -59,6 +59,8 @@ export function LocationsPage() {
   const connectionId = params.get('connectionId') ?? ALL;
   const status = params.get('status') ?? 'active';
   const staleDays = params.get('staleDays') ?? ALL;
+  // One "Posting" filter covers client activation and Google verification.
+  const posting = params.get('posting') ?? ALL;
   const page = Math.max(1, Number(params.get('page') ?? '1') || 1);
 
   const setParam = (key: string, value: string | null, resetPage = true) => {
@@ -80,6 +82,8 @@ export function LocationsPage() {
     connectionId: connectionId === ALL ? undefined : connectionId,
     status,
     staleDays: staleDays === ALL ? undefined : Number(staleDays),
+    clientStatus: posting === 'active_clients' ? 'active' : posting === 'inactive_clients' ? 'inactive' : undefined,
+    verification: posting === 'unverified' ? 'unverified' : undefined,
     page,
     pageSize: PAGE_SIZE,
   };
@@ -96,7 +100,9 @@ export function LocationsPage() {
   const update = useUpdateLocation();
   const bulk = useBulkUpdateLocations();
 
-  useEffect(() => setSelected(new Set()), [search, clientId, connectionId, status, staleDays, page]);
+  const setClientsActive = useSetClientsActive();
+
+  useEffect(() => setSelected(new Set()), [search, clientId, connectionId, status, staleDays, posting, page]);
 
   const items = data?.items ?? [];
   const allOnPage = items.length > 0 && items.every((l) => selected.has(l.id));
@@ -117,7 +123,10 @@ export function LocationsPage() {
     bulk.mutate({ ids: [...selected], ...patch }, { onSuccess: () => setSelected(new Set()) });
 
   const hasFilters =
-    !!search || clientId !== ALL || connectionId !== ALL || status !== 'active' || staleDays !== ALL;
+    !!search || clientId !== ALL || connectionId !== ALL || status !== 'active' || staleDays !== ALL || posting !== ALL;
+  const selectedInactiveClients = [
+    ...new Set(items.filter((l) => selected.has(l.id) && l.client && !l.client.is_active).map((l) => l.client!.id)),
+  ];
 
   return (
     <>
@@ -125,17 +134,17 @@ export function LocationsPage() {
         eyebrow="Profiles"
         title="Locations"
         highlight="Locations"
-        description="Every Business Profile your connected Gmails can manage. Assign them to clients and set each one's time zone."
+        description="Every Business Profile your connected Gmails can manage. Only locations of active clients are posted to: search a client's name and activate it here."
       />
 
       <Card className="p-3 sm:p-5">
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))]">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(5,minmax(0,1fr))]">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orbit-muted" aria-hidden />
             <Input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search name, city, address, category…"
+              placeholder="Search business, client, city, address…"
               className="pl-9"
               aria-label="Search locations"
             />
@@ -177,6 +186,17 @@ export function LocationsPage() {
               <SelectItem value="all">All statuses</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={posting} onValueChange={(v) => setParam('posting', v)}>
+            <SelectTrigger aria-label="Filter by client status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Any client status</SelectItem>
+              <SelectItem value="active_clients">Active clients</SelectItem>
+              <SelectItem value="inactive_clients">Inactive clients</SelectItem>
+              <SelectItem value="unverified">Not verified on Google</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={staleDays} onValueChange={(v) => setParam('staleDays', v)}>
             <SelectTrigger aria-label="Filter by last post">
               <SelectValue />
@@ -212,6 +232,8 @@ export function LocationsPage() {
             onAssign={(id) => runBulk({ client_id: id })}
             onActive={(v) => runBulk({ is_active: v })}
             onTimezone={(tz) => runBulk({ timezone: tz })}
+            inactiveClients={selectedInactiveClients.length}
+            onActivateClients={() => setClientsActive.mutate({ ids: selectedInactiveClients, active: true })}
             onClear={() => setSelected(new Set())}
           />
         )}
@@ -262,7 +284,7 @@ export function LocationsPage() {
                       <TableHead>Gmail access</TableHead>
                       <TableHead>Time zone</TableHead>
                       <TableHead>Last post</TableHead>
-                      <TableHead>Active</TableHead>
+                      <TableHead>Location on</TableHead>
                       <TableHead className="w-12"><span className="sr-only">Actions</span></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -286,12 +308,13 @@ export function LocationsPage() {
                           <p className="wrap-anywhere text-xs text-orbit-muted">
                             {[l.primary_category, l.address_text ?? l.service_area_text].filter(Boolean).join(' · ') || '—'}
                           </p>
+                          <UnverifiedBadge location={l} />
                           </div>
                         </TableCell>
                         <TableCell>
                           {/* max-width on a table cell is ignored, so constrain an inner block instead. */}
                           <div className="w-[180px] max-w-[180px]">
-                            <ClientDot client={l.client} />
+                            <ClientStatusCell location={l} canManage={canManage} />
                           </div>
                         </TableCell>
                         <TableCell>
@@ -341,11 +364,12 @@ export function LocationsPage() {
                           {l.title}
                         </Link>
                         <p className="wrap-anywhere text-xs text-orbit-muted">{l.address_text ?? l.service_area_text ?? '—'}</p>
+                        <UnverifiedBadge location={l} />
                       </div>
                       <RowMenu location={l} canManage={canManage} onEdit={() => setEditing(l)} />
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                      <ClientDot client={l.client} />
+                      <ClientStatusCell location={l} canManage={canManage} />
                       <AccessChips location={l} />
                       <span className="text-orbit-muted">{l.timezone}</span>
                     </div>
@@ -446,6 +470,8 @@ function BulkBar({
   onAssign,
   onActive,
   onTimezone,
+  inactiveClients,
+  onActivateClients,
   onClear,
 }: {
   count: number;
@@ -453,6 +479,8 @@ function BulkBar({
   onAssign: (clientId: string | null) => void;
   onActive: (active: boolean) => void;
   onTimezone: (tz: string) => void;
+  inactiveClients: number;
+  onActivateClients: () => void;
   onClear: () => void;
 }) {
   const { data: clients } = useClients();
@@ -478,11 +506,16 @@ function BulkBar({
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+      {inactiveClients > 0 && (
+        <Button size="sm" disabled={busy} onClick={onActivateClients}>
+          <Power /> Activate {inactiveClients === 1 ? 'client' : `${inactiveClients} clients`}
+        </Button>
+      )}
       <Button size="sm" variant="outline" disabled={busy} onClick={() => onActive(true)}>
-        <Power /> Activate
+        <Power /> Turn locations on
       </Button>
       <Button size="sm" variant="outline" disabled={busy} onClick={() => onActive(false)}>
-        <PowerOff /> Deactivate
+        <PowerOff /> Turn locations off
       </Button>
       <Popover open={tzOpen} onOpenChange={setTzOpen}>
         <PopoverTrigger asChild>

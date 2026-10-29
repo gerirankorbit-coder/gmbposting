@@ -71,6 +71,9 @@ export const locationListQuerySchema = z.object({
   clientId: z.union([uuidSchema, z.literal('none')]).optional(),
   connectionId: uuidSchema.optional(),
   status: z.enum(['active', 'inactive', 'all']).catch('all').default('all'),
+  clientStatus: z.enum(['active', 'inactive', 'all']).catch('all').default('all'),
+  /** `unverified` = Google says the profile can't take posts (unverified, pending or suspended). */
+  verification: z.enum(['unverified', 'all']).catch('all').default('all'),
   staleDays: z.coerce.number().int().min(1).max(365).optional(),
   sort: z.enum(['title', 'last_post_at', 'city', 'synced_at']).catch('title').default('title'),
   dir: z.enum(['asc', 'desc']).catch('asc').default('asc'),
@@ -352,3 +355,9 @@ export const activityQuerySchema = z.object({
   page: intFromQuery(1, 100000, 1),
   pageSize: intFromQuery(1, 100, 25),
 });
+
+export const postingStatusQuerySchema = z.object({
+  since: z.string().datetime({ offset: true }),
+  search: z.string().trim().max(200).optional(),
+});
+
