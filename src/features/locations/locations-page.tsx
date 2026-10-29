@@ -58,7 +58,6 @@ export function LocationsPage() {
   const clientId = params.get('clientId') ?? ALL;
   const connectionId = params.get('connectionId') ?? ALL;
   const status = params.get('status') ?? 'active';
-  const staleDays = params.get('staleDays') ?? ALL;
   // One "Posting" filter covers client activation and Google verification.
   const posting = params.get('posting') ?? ALL;
   const page = Math.max(1, Number(params.get('page') ?? '1') || 1);
@@ -81,7 +80,6 @@ export function LocationsPage() {
     clientId: clientId === ALL ? undefined : clientId,
     connectionId: connectionId === ALL ? undefined : connectionId,
     status,
-    staleDays: staleDays === ALL ? undefined : Number(staleDays),
     clientStatus: posting === 'active_clients' ? 'active' : posting === 'inactive_clients' ? 'inactive' : undefined,
     verification: posting === 'unverified' ? 'unverified' : undefined,
     page,
@@ -102,7 +100,7 @@ export function LocationsPage() {
 
   const setClientsActive = useSetClientsActive();
 
-  useEffect(() => setSelected(new Set()), [search, clientId, connectionId, status, staleDays, posting, page]);
+  useEffect(() => setSelected(new Set()), [search, clientId, connectionId, status, posting, page]);
 
   const items = data?.items ?? [];
   const allOnPage = items.length > 0 && items.every((l) => selected.has(l.id));
@@ -123,7 +121,7 @@ export function LocationsPage() {
     bulk.mutate({ ids: [...selected], ...patch }, { onSuccess: () => setSelected(new Set()) });
 
   const hasFilters =
-    !!search || clientId !== ALL || connectionId !== ALL || status !== 'active' || staleDays !== ALL || posting !== ALL;
+    !!search || clientId !== ALL || connectionId !== ALL || status !== 'active' || posting !== ALL;
   const selectedInactiveClients = [
     ...new Set(items.filter((l) => selected.has(l.id) && l.client && !l.client.is_active).map((l) => l.client!.id)),
   ];
@@ -138,7 +136,7 @@ export function LocationsPage() {
       />
 
       <Card className="p-3 sm:p-5">
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(5,minmax(0,1fr))]">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))]">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orbit-muted" aria-hidden />
             <Input
@@ -195,17 +193,6 @@ export function LocationsPage() {
               <SelectItem value="active_clients">Active clients</SelectItem>
               <SelectItem value="inactive_clients">Inactive clients</SelectItem>
               <SelectItem value="unverified">Not verified on Google</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={staleDays} onValueChange={(v) => setParam('staleDays', v)}>
-            <SelectTrigger aria-label="Filter by last post">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Any last post</SelectItem>
-              <SelectItem value="7">No post in 7+ days</SelectItem>
-              <SelectItem value="14">No post in 14+ days</SelectItem>
-              <SelectItem value="30">No post in 30+ days</SelectItem>
             </SelectContent>
           </Select>
         </div>

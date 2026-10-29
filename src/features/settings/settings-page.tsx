@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Mail, Play, RefreshCw, Save, ShieldCheck, UserPlus, Users, UserX, X } from 'lucide-react';
+import { Loader2, Mail, RefreshCw, Save, ShieldCheck, UserPlus, Users, UserX, X } from 'lucide-react';
 import { toast } from 'sonner';
 import type { InviteInput, SettingsUpdate } from '../../../shared/schemas';
-import { ROLES, type AppSettings, type InvitationDTO, type PublisherSummary, type Role, type TeamMemberDTO } from '../../../shared/types';
+import { ROLES, type AppSettings, type InvitationDTO, type Role, type TeamMemberDTO } from '../../../shared/types';
 import { useMe } from '@/app/auth';
 import { api, errorMessage } from '@/lib/api';
 import { formatLocal, initials, timeAgo } from '@/lib/format';
@@ -30,13 +30,10 @@ const ROLE_HELP: Record<Role, string> = {
 export function SettingsPage() {
   return (
     <>
-      <PageHeader eyebrow="Admin" title="Settings" highlight="Settings" description="Approval rules, publisher limits and team roles." />
-      <div className="grid gap-6 xl:grid-cols-2">
+      <PageHeader eyebrow="Admin" title="Settings" highlight="Settings" description="Approval rules, publisher limits and team access." />
+      <div className="grid gap-6">
         <PublishingSettings />
-        <PublisherRunner />
-        <div className="xl:col-span-2">
-          <TeamRoles />
-        </div>
+        <TeamRoles />
       </div>
     </>
   );
@@ -99,55 +96,6 @@ function PublishingSettings() {
             <Button className="justify-self-start" disabled={!dirty || !validNumbers || save.isPending} onClick={() => save.mutate(draft)}>
               {save.isPending ? <Loader2 className="animate-spin" /> : <Save />} Save settings
             </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function PublisherRunner() {
-  const qc = useQueryClient();
-  const run = useMutation({
-    mutationFn: () => api.post<PublisherSummary>('/publisher/run'),
-    onSuccess: (s) => {
-      toast.success(`Publisher finished: ${s.published} published, ${s.failed} failed`);
-      void qc.invalidateQueries({ queryKey: qk.postsAll });
-      void qc.invalidateQueries({ queryKey: qk.notificationsAll });
-    },
-    onError: (err) => toast.error('Publisher failed', { description: errorMessage(err) }),
-  });
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Play className="h-5 w-5 text-orbit-primary" aria-hidden /> Publisher
-        </CardTitle>
-        <CardDescription>Runs automatically every 5 minutes. Run it now to publish everything that is due immediately.</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <Button className="justify-self-start" onClick={() => run.mutate()} disabled={run.isPending}>
-          {run.isPending ? <Loader2 className="animate-spin" /> : <Play />}
-          {run.isPending ? 'Publishing…' : 'Run publisher now'}
-        </Button>
-        {run.data && (
-          <div>
-            <div className="mb-3 grid grid-cols-4 gap-2 text-center">
-              {(
-                [
-                  ['Processed', run.data.processed],
-                  ['Published', run.data.published],
-                  ['Failed', run.data.failed],
-                  ['Still due', run.data.remaining],
-                ] as const
-              ).map(([label, value]) => (
-                <div key={label} className="rounded-2xl border border-orbit-line bg-white/70 p-2">
-                  <p className="text-xl font-extrabold text-orbit-heading">{value}</p>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-orbit-muted">{label}</p>
-                </div>
-              ))}
-            </div>
-            <pre className="overflow-x-auto rounded-2xl bg-orbit-heading p-4 text-xs text-white">{JSON.stringify(run.data, null, 2)}</pre>
           </div>
         )}
       </CardContent>

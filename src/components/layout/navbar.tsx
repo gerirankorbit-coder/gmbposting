@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { UserButton } from '@clerk/react';
-import { ArrowRight, ChevronDown, Menu } from 'lucide-react';
+import { ChevronDown, Menu } from 'lucide-react';
 import { NotificationBell } from '@/features/notifications/notification-bell';
 import { hasRole } from '../../../shared/types';
 import { useMe } from '@/app/auth';
 import { primaryNav, secondaryNav, type NavItem } from '@/app/nav';
-import { Button, ButtonChip } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,14 +89,6 @@ export function Navbar({ notificationSlot }: { notificationSlot?: React.ReactNod
         </ul>
 
         <div className="ml-auto flex items-center gap-1.5 xl:ml-0">
-          <Button asChild size="sm" className="hidden h-10 pl-5 pr-4 lg:inline-flex">
-            <Link to="/compose">
-              New Post
-              <ButtonChip>
-                <ArrowRight />
-              </ButtonChip>
-            </Link>
-          </Button>
           {notificationSlot ?? <NotificationBell />}
           <div className="flex h-10 w-10 items-center justify-center">
             <UserButton appearance={{ elements: { avatarBox: 'h-9 w-9' } }} />
