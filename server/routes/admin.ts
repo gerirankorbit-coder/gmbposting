@@ -36,7 +36,9 @@ function assertNotLastAdmin(team: TeamMemberDTO[], target: TeamMemberDTO, nextRo
  * invitation), grant a role to someone who signed up uninvited, or remove a member's access.
  */
 export const teamRoutes = new Hono<AuthEnv>()
-  .get('/', requireRole('admin'), async (c) => c.json(await listTeam(c.req.query('refresh') === '1')))
+  // Always read Clerk directly: the 5-minute cache is per server instance, so a member who just
+  // accepted an invitation could stay missing from this list. (actorNames keeps using the cache.)
+  .get('/', requireRole('admin'), async (c) => c.json(await listTeam(true)))
   .get('/invitations', requireRole('admin'), async (c) => {
     const list = await getClerk().invitations.getInvitationList({ status: 'pending', limit: 100 });
     const body: InvitationDTO[] = list.data.map((i) => ({
