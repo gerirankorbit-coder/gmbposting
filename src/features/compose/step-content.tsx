@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { AlertTriangle, Loader2, PenLine, RefreshCw, Sparkles, Wand2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { AlertTriangle, FileSpreadsheet, Loader2, PenLine, RefreshCw, Sparkles, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { contentWarnings } from '../../../shared/content';
 import { AI_MAX_LOCATIONS_PER_REQUEST, type AiVariationsInput } from '../../../shared/schemas';
@@ -13,6 +13,7 @@ import { Segmented } from '@/components/ui/segmented';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { ComposeState, ContentMode } from './compose-state';
+import { ImportContentPanel, ImportRowPicker, importRowsByLocation, useImportDetail } from './import-content';
 
 const TONES = [
   'friendly and professional',
@@ -107,6 +108,9 @@ export function StepContent({
   };
 
   const hasVariations = state.selected.some((id) => state.variations[id]);
+  const fromImport = state.contentMode === 'import';
+  const importDetail = useImportDetail(fromImport ? state.importId : null);
+  const importRows = useMemo(() => importRowsByLocation(importDetail.data), [importDetail.data]);
 
   return (
     <div className="grid gap-6">
@@ -117,6 +121,7 @@ export function StepContent({
         options={[
           { value: 'single', label: 'One text for all', icon: PenLine },
           { value: 'ai', label: 'Unique variations with AI', icon: Sparkles },
+          { value: 'import', label: 'From import sheet', icon: FileSpreadsheet },
         ]}
       />
 
@@ -143,53 +148,57 @@ export function StepContent({
         </div>
       ) : (
         <>
-          <div className="grid gap-4 rounded-3xl border border-orbit-line bg-white/60 p-4 sm:p-5">
-            <div className="grid gap-1.5">
-              <Label htmlFor="brief">Brief</Label>
-              <Textarea
-                id="brief"
-                rows={4}
-                value={state.brief}
-                onChange={(e) => patch({ brief: e.target.value })}
-                placeholder="What should the posts be about? e.g. Winter roof inspections: why ice dams form, 3 warning signs, book a free inspection before the first snow."
-              />
-            </div>
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          {fromImport ? (
+            <ImportContentPanel state={state} patch={patch} locById={locById} />
+          ) : (
+            <div className="grid gap-4 rounded-3xl border border-orbit-line bg-white/60 p-4 sm:p-5">
               <div className="grid gap-1.5">
-                <Label htmlFor="tone">Tone</Label>
-                <Select value={TONES.includes(state.tone) ? state.tone : 'custom'} onValueChange={(v) => patch({ tone: v === 'custom' ? '' : v })}>
-                  <SelectTrigger id="tone">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TONES.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t[0]!.toUpperCase() + t.slice(1)}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="custom">Custom…</SelectItem>
-                  </SelectContent>
-                </Select>
-                {!TONES.includes(state.tone) && (
-                  <Input aria-label="Custom tone" value={state.tone} onChange={(e) => patch({ tone: e.target.value })} placeholder="Describe the tone" />
-                )}
+                <Label htmlFor="brief">Brief</Label>
+                <Textarea
+                  id="brief"
+                  rows={4}
+                  value={state.brief}
+                  onChange={(e) => patch({ brief: e.target.value })}
+                  placeholder="What should the posts be about? e.g. Winter roof inspections: why ice dams form, 3 warning signs, book a free inspection before the first snow."
+                />
               </div>
-              <Button onClick={generateAll} disabled={busyAll || !state.selected.length}>
-                {busyAll ? <Loader2 className="animate-spin" /> : <Wand2 />}
-                {hasVariations ? 'Regenerate all' : `Generate ${state.selected.length} variation${state.selected.length === 1 ? '' : 's'}`}
-              </Button>
-            </div>
-            {progress && (
-              <div role="status" className="grid gap-1.5">
-                <div className="h-2 overflow-hidden rounded-full bg-orbit-primary/10">
-                  <div className="h-full rounded-full bg-orbit-gradient transition-all" style={{ width: `${Math.max(6, (progress.done / progress.total) * 100)}%` }} />
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="tone">Tone</Label>
+                  <Select value={TONES.includes(state.tone) ? state.tone : 'custom'} onValueChange={(v) => patch({ tone: v === 'custom' ? '' : v })}>
+                    <SelectTrigger id="tone">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TONES.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t[0]!.toUpperCase() + t.slice(1)}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="custom">Custom…</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {!TONES.includes(state.tone) && (
+                    <Input aria-label="Custom tone" value={state.tone} onChange={(e) => patch({ tone: e.target.value })} placeholder="Describe the tone" />
+                  )}
                 </div>
-                <p className="text-xs text-orbit-muted">
-                  Writing posts… {progress.done} of {progress.total} done
-                </p>
+                <Button onClick={generateAll} disabled={busyAll || !state.selected.length}>
+                  {busyAll ? <Loader2 className="animate-spin" /> : <Wand2 />}
+                  {hasVariations ? 'Regenerate all' : `Generate ${state.selected.length} variation${state.selected.length === 1 ? '' : 's'}`}
+                </Button>
               </div>
-            )}
-          </div>
+              {progress && (
+                <div role="status" className="grid gap-1.5">
+                  <div className="h-2 overflow-hidden rounded-full bg-orbit-primary/10">
+                    <div className="h-full rounded-full bg-orbit-gradient transition-all" style={{ width: `${Math.max(6, (progress.done / progress.total) * 100)}%` }} />
+                  </div>
+                  <p className="text-xs text-orbit-muted">
+                    Writing posts… {progress.done} of {progress.total} done
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           <ul className="grid gap-4">
             {state.selected.map((id) => {
@@ -204,10 +213,18 @@ export function StepContent({
                     </div>
                     <div className="flex items-center gap-2">
                       <CharCounter length={text.length} />
-                      <Button variant="outline" size="sm" onClick={() => regenerateOne(id)} disabled={busyAll || busyOne === id}>
-                        {busyOne === id ? <Loader2 className="animate-spin" /> : <RefreshCw />}
-                        {text ? 'Regenerate' : 'Generate'}
-                      </Button>
+                      {fromImport ? (
+                        <ImportRowPicker
+                          rows={importRows.get(id) ?? []}
+                          value={text}
+                          onPick={(t) => patch({ variations: { ...state.variations, [id]: t } })}
+                        />
+                      ) : (
+                        <Button variant="outline" size="sm" onClick={() => regenerateOne(id)} disabled={busyAll || busyOne === id}>
+                          {busyOne === id ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+                          {text ? 'Regenerate' : 'Generate'}
+                        </Button>
+                      )}
                     </div>
                   </div>
                   <Textarea
@@ -215,7 +232,13 @@ export function StepContent({
                     rows={7}
                     value={text}
                     onChange={(e) => patch({ variations: { ...state.variations, [id]: e.target.value } })}
-                    placeholder="Generate with AI or write this location's post."
+                    placeholder={
+                      !fromImport
+                        ? "Generate with AI or write this location's post."
+                        : state.importId
+                          ? 'This location is not in the sheet. Write its post here.'
+                          : "Choose a sheet above, or write this location's post."
+                    }
                   />
                   <Warnings text={text} />
                 </li>

@@ -5,7 +5,7 @@ import { spreadSchedule, zonedWallToUtc } from '../../../shared/schedule';
 import { POST_SUMMARY_MAX, type CtaType, type LibraryImageDTO, type LocationDTO, type TopicType, type UploadedImageDTO } from '../../../shared/types';
 
 export type ImageChoice = 'auto' | 'upload' | 'library' | 'none';
-export type ContentMode = 'single' | 'ai';
+export type ContentMode = 'single' | 'ai' | 'import';
 export type ScheduleMode = 'asap' | 'specific' | 'spread';
 
 export interface ComposeState {
@@ -30,6 +30,8 @@ export interface ComposeState {
   brief: string;
   tone: string;
   variations: Record<string, string>;
+  /** Sheet the texts were taken from (content mode `import`). */
+  importId: string | null;
   scheduleMode: ScheduleMode;
   specificDate: string;
   specificTime: string;
@@ -66,6 +68,7 @@ export function initialComposeState(): ComposeState {
     brief: '',
     tone: 'friendly and professional',
     variations: {},
+    importId: null,
     scheduleMode: 'asap',
     specificDate: format(new Date(Date.now() + 86_400_000), 'yyyy-MM-dd'),
     specificTime: '10:00',
@@ -127,7 +130,13 @@ export function validateCompose(state: ComposeState, locById: Map<string, Locati
     const text = summaryFor(state, id).trim();
     const title = locById.get(id)?.title ?? 'a location';
     if (!text && state.topicType === 'STANDARD') {
-      return { step: 2, message: state.contentMode === 'single' ? 'Write the post text.' : `Generate or write the post for ${title}.` };
+      const message =
+        state.contentMode === 'single'
+          ? 'Write the post text.'
+          : state.contentMode === 'import'
+            ? `The sheet has no post for ${title}; write it or pick another sheet.`
+            : `Generate or write the post for ${title}.`;
+      return { step: 2, message };
     }
     if (text.length > POST_SUMMARY_MAX) return { step: 2, message: `The post for ${title} is over ${POST_SUMMARY_MAX} characters.` };
   }
