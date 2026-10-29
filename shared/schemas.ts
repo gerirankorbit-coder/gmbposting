@@ -123,7 +123,8 @@ export const uploadCompleteSchema = z.object({
 // ---------------------------------------------------------------------------------------------
 // AI
 // ---------------------------------------------------------------------------------------------
-export const AI_MAX_LOCATIONS_PER_REQUEST = 40;
+/** One Gemini batch per request, so each request finishes well inside Vercel's 60 s limit. */
+export const AI_MAX_LOCATIONS_PER_REQUEST = 8;
 
 export const aiVariationsSchema = z.object({
   brief: z.string().trim().min(10, 'Describe the post in at least a few words.').max(4000),
