@@ -20,7 +20,7 @@ import { parseBody, parseQuery } from '../lib/validate.js';
 import { requireRole, type AuthEnv, type AuthUser } from '../middleware/auth.js';
 import { GoogleClient, googleErrorMessage } from '../google/client.js';
 import { GoogleApiError } from '../google/errors.js';
-import { deleteLocalPost } from '../google/posts.js';
+import { deleteLocalPost, getLocalPost } from '../google/posts.js';
 import { createPosts } from '../posts/create.js';
 import { runPublisher } from '../publisher/run.js';
 import { regenerateBranded } from '../images/resolve.js';
@@ -305,12 +305,26 @@ export const postRoutes = new Hono<AuthEnv>()
     const post = await getPostRow(id);
     if (post.status !== 'published' || !post.google_post_name) throw conflict('Only published posts can be deleted from Google.');
     if (!post.connection_id) throw conflict('This post has no Google account to delete it with.');
+    const client = await GoogleClient.forConnection(post.connection_id);
     try {
-      const client = await GoogleClient.forConnection(post.connection_id);
       await deleteLocalPost(client, post.google_post_name);
     } catch (err) {
       if (!(err instanceof GoogleApiError && err.status === 404)) {
-        throw new ApiError(502, 'google_error', `Google did not delete the post: ${googleErrorMessage(err)}`);
+        // Google's v4 API often answers DELETE with "Internal error" (500), sometimes after the
+        // post is already gone, sometimes because it is still processing. Ask Google what is true.
+        let state: string | undefined;
+        try {
+          state = (await getLocalPost(client, post.google_post_name)).state;
+        } catch (checkErr) {
+          if (checkErr instanceof GoogleApiError && checkErr.status === 404) state = 'GONE';
+        }
+        if (state !== 'GONE') {
+          const hint =
+            state === 'PROCESSING'
+              ? 'Google is still processing this post (it was published recently). Try again in a few minutes.'
+              : 'This is a temporary error on Google\'s side. Try again in a few minutes, or delete the post in Google Business Profile.';
+          throw new ApiError(502, 'google_error', `Google did not delete the post: ${googleErrorMessage(err)} ${hint}`);
+        }
       }
     }
     unwrap(
