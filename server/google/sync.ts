@@ -5,7 +5,7 @@ import { db } from '../db/supabase.js';
 import type { LocationRow } from '../db/types.js';
 import { GoogleClient, googleErrorMessage } from './client.js';
 import { listAccounts, type GbpAccount } from './accounts.js';
-import { listLocations, normalizeLocation, type NormalizedLocation } from './locations.js';
+import { guessLocationTimeZone, listLocations, normalizeLocation, type NormalizedLocation } from './locations.js';
 import { ReauthRequiredError } from './errors.js';
 
 export interface SyncResult {
@@ -103,13 +103,15 @@ export async function syncConnection(connectionId: string, actor: string): Promi
     }
     unwrap(await staleAccounts, 'Remove stale accounts');
 
-    // location_name -> { data, account }
-    const found = new Map<string, { data: NormalizedLocation; account: GbpAccount }>();
+    // location_name -> { data, account, tz guess }
+    const found = new Map<string, { data: NormalizedLocation; account: GbpAccount; tz: string | null }>();
     for (const account of accounts) {
       try {
         const locs = await listLocations(client, account.name);
         for (const loc of locs) {
-          if (!found.has(loc.name)) found.set(loc.name, { data: normalizeLocation(loc), account });
+          if (found.has(loc.name)) continue;
+          const data = normalizeLocation(loc);
+          found.set(loc.name, { data, account, tz: guessLocationTimeZone(loc, data.address_text) });
         }
       } catch (err) {
         if (err instanceof ReauthRequiredError) throw err;
@@ -138,7 +140,17 @@ export async function syncConnection(connectionId: string, actor: string): Promi
       const rows = unwrap(
         await db()
           .from('locations')
-          .insert(part.map((n) => ({ ...found.get(n)!.data, timezone: settings.default_timezone, synced_at: now })))
+          .insert(
+            part.map((n) => {
+              const { data, tz } = found.get(n)!;
+              return {
+                ...data,
+                timezone: tz ?? settings.default_timezone,
+                timezone_source: tz ? ('auto' as const) : ('default' as const),
+                synced_at: now,
+              };
+            }),
+          )
           .select('id, title, client_id, location_name'),
         'Insert locations',
       );
@@ -146,7 +158,7 @@ export async function syncConnection(connectionId: string, actor: string): Promi
       result.newLocations += rows.length;
     }
     for (const part of chunk(toUpdate, 200)) {
-      // Upsert only Google-owned columns; client, timezone and flags stay as edited by the team.
+      // Upsert only Google-owned columns; client and flags stay as edited by the team.
       unwrap(
         await db()
           .from('locations')
@@ -156,6 +168,25 @@ export async function syncConnection(connectionId: string, actor: string): Promi
           ),
         'Update locations',
       );
+    }
+
+    // Auto time zones: fill from the address unless the team set one by hand.
+    const byZone = new Map<string, string[]>();
+    for (const n of toUpdate) {
+      const tz = found.get(n)!.tz;
+      if (tz) byZone.set(tz, [...(byZone.get(tz) ?? []), n]);
+    }
+    for (const [tz, locNames] of byZone) {
+      for (const part of chunk(locNames, 200)) {
+        unwrap(
+          await db()
+            .from('locations')
+            .update({ timezone: tz, timezone_source: 'auto' })
+            .in('location_name', part)
+            .neq('timezone_source', 'manual'),
+          'Update location time zones',
+        );
+      }
     }
 
     result.newClients = await assignClients([...existing.values()]);

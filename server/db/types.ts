@@ -95,6 +95,8 @@ export type LocationRow = {
   maps_uri: string | null;
   place_id: string | null;
   timezone: string;
+  /** default = workspace default, auto = inferred from the address on sync, manual = set by the team */
+  timezone_source: 'default' | 'auto' | 'manual';
   is_active: boolean;
   last_post_at: string | null;
   synced_at: string | null;

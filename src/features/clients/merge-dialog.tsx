@@ -74,7 +74,7 @@ export function MergeDialog({
                   }}
                 />
                 <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c.color }} aria-hidden />
-                <span className="flex-1 truncate text-sm font-semibold text-orbit-heading">{c.name}</span>
+                <span className="flex-1 wrap-anywhere text-sm font-semibold text-orbit-heading">{c.name}</span>
                 <span className="text-xs text-orbit-muted">{pluralize(c.location_count, 'location')}</span>
               </label>
             </li>

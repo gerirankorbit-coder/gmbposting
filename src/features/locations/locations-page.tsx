@@ -278,16 +278,21 @@ export function LocationsPage() {
                             />
                           </TableCell>
                         )}
-                        <TableCell className="max-w-[320px]">
-                          <Link to={`/locations/${l.id}`} className="font-bold text-orbit-heading hover:text-orbit-primary">
+                        <TableCell>
+                          <div className="w-[300px] max-w-[300px]">
+                          <Link to={`/locations/${l.id}`} className="wrap-anywhere font-bold text-orbit-heading hover:text-orbit-primary" title={l.title}>
                             {l.title}
                           </Link>
-                          <p className="truncate text-xs text-orbit-muted">
+                          <p className="wrap-anywhere text-xs text-orbit-muted">
                             {[l.primary_category, l.address_text ?? l.service_area_text].filter(Boolean).join(' · ') || '—'}
                           </p>
+                          </div>
                         </TableCell>
-                        <TableCell className="max-w-[180px]">
-                          <ClientDot client={l.client} />
+                        <TableCell>
+                          {/* max-width on a table cell is ignored, so constrain an inner block instead. */}
+                          <div className="w-[180px] max-w-[180px]">
+                            <ClientDot client={l.client} />
+                          </div>
                         </TableCell>
                         <TableCell>
                           <AccessChips location={l} />
@@ -335,7 +340,7 @@ export function LocationsPage() {
                         <Link to={`/locations/${l.id}`} className="font-bold text-orbit-heading">
                           {l.title}
                         </Link>
-                        <p className="truncate text-xs text-orbit-muted">{l.address_text ?? l.service_area_text ?? '—'}</p>
+                        <p className="wrap-anywhere text-xs text-orbit-muted">{l.address_text ?? l.service_area_text ?? '—'}</p>
                       </div>
                       <RowMenu location={l} canManage={canManage} onEdit={() => setEditing(l)} />
                     </div>

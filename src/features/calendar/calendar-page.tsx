@@ -30,13 +30,13 @@ function EventChip({ arg }: { arg: EventContentArg }) {
   const color = post.location?.client?.color ?? FALLBACK_COLOR;
   return (
     <div
-      className="flex w-full min-w-0 items-center gap-1 overflow-hidden rounded-lg px-1.5 py-0.5 text-[11px] font-semibold leading-tight text-orbit-heading"
+      className="flex w-full min-w-0 items-start gap-1 overflow-hidden whitespace-normal rounded-lg px-1.5 py-0.5 text-[11px] font-semibold leading-tight text-orbit-heading"
       style={{ backgroundColor: `${color}1f`, borderLeft: `3px solid ${color}` }}
       title={`${post.location?.title ?? ''} · ${meta.label}`}
     >
-      <Icon className={`h-3 w-3 shrink-0 ${post.status === 'failed' ? 'text-rose-600' : post.status === 'published' ? 'text-emerald-600' : 'text-orbit-primary'}`} aria-hidden />
+      <Icon className={`mt-px h-3 w-3 shrink-0 ${post.status === 'failed' ? 'text-rose-600' : post.status === 'published' ? 'text-emerald-600' : 'text-orbit-primary'}`} aria-hidden />
       {arg.timeText && <span className="shrink-0 text-orbit-muted">{arg.timeText}</span>}
-      <span className="truncate">{post.location?.title}</span>
+      <span className="wrap-anywhere">{post.location?.title}</span>
     </div>
   );
 }

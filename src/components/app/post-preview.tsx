@@ -37,7 +37,7 @@ export function PostPreview(p: PostPreviewProps) {
           {p.businessName[0]?.toUpperCase() ?? 'B'}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-[#202124]">{p.businessName || 'Business name'}</p>
+          <p className="wrap-anywhere text-sm font-semibold text-[#202124]">{p.businessName || 'Business name'}</p>
           <p className="text-xs text-[#5f6368]">{p.whenLabel ?? 'Just now'}</p>
         </div>
         <MoreVertical className="h-4 w-4 text-[#5f6368]" aria-hidden />

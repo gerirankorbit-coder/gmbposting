@@ -202,11 +202,11 @@ function TeamRoles() {
                   <AvatarFallback>{initials(u.name ?? u.email)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-orbit-heading">
+                  <p className="wrap-anywhere text-sm font-bold text-orbit-heading">
                     {u.name ?? u.email}
                     {u.id === me?.id && <span className="ml-1.5 text-xs font-medium text-orbit-muted">(you)</span>}
                   </p>
-                  <p className="truncate text-xs text-orbit-muted" title={u.last_sign_in_at ? formatLocal(u.last_sign_in_at) : undefined}>
+                  <p className="wrap-anywhere text-xs text-orbit-muted" title={u.last_sign_in_at ? formatLocal(u.last_sign_in_at) : undefined}>
                     {u.email} · {u.last_sign_in_at ? `last seen ${timeAgo(u.last_sign_in_at)}` : 'never signed in'}
                   </p>
                 </div>

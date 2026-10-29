@@ -85,7 +85,7 @@ export function LibraryPage() {
                 <div className="flex items-start gap-3">
                   <ClientAvatar client={s.client} />
                   <div className="min-w-0 flex-1">
-                    <Link to={`/library/${s.client.id}`} className="block truncate text-lg font-extrabold tracking-tightest text-orbit-heading hover:text-orbit-primary">
+                    <Link to={`/library/${s.client.id}`} className="block wrap-anywhere text-lg font-extrabold tracking-tightest text-orbit-heading hover:text-orbit-primary">
                       {s.client.name}
                     </Link>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">

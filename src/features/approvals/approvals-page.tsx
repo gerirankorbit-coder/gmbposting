@@ -102,7 +102,7 @@ export function ApprovalsPage() {
                 <div className="mb-4 flex flex-wrap items-center gap-3">
                   <Checkbox checked={all ? true : some ? 'indeterminate' : false} onCheckedChange={(v) => toggle(ids, !!v)} aria-label={`Select all in ${group.name}`} />
                   <div className="min-w-0 flex-1">
-                    <h2 className="truncate text-lg">{group.name}</h2>
+                    <h2 className="wrap-anywhere text-lg">{group.name}</h2>
                     <p className="text-xs text-orbit-muted">{pluralize(group.posts.length, 'post')} waiting</p>
                   </div>
                   <Button size="sm" variant="secondary" onClick={() => approveIds(ids)} disabled={approve.isPending}>
@@ -160,7 +160,7 @@ function ApprovalCard({
         <Checkbox className="mt-1" checked={selected} onCheckedChange={(v) => onSelect(!!v)} aria-label={`Select post for ${p.location?.title}`} />
         <PostThumb post={p} />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-orbit-heading">{p.location?.title}</p>
+          <p className="wrap-anywhere text-sm font-bold text-orbit-heading">{p.location?.title}</p>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-orbit-muted">
             <ClientDot client={p.location?.client ?? null} className="text-xs" />
             <ZonedTime iso={p.scheduled_at} timeZone={p.location?.timezone ?? 'UTC'} className="text-xs underline decoration-dotted underline-offset-2" />

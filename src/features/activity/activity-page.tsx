@@ -42,7 +42,7 @@ export function ActivityItem({ a }: { a: ActivityDTO }) {
         <p className="text-sm text-orbit-body">
           <strong className="text-orbit-heading">{a.actor_name}</strong> {activityLabel(a.action)}
         </p>
-        {detail && <p className="truncate text-xs text-orbit-muted" title={detail}>{detail}</p>}
+        {detail && <p className="wrap-anywhere text-xs text-orbit-muted" title={detail}>{detail}</p>}
       </div>
       <Tooltip>
         <TooltipTrigger className="shrink-0 text-xs text-orbit-muted">{timeAgo(a.created_at)}</TooltipTrigger>

@@ -385,13 +385,13 @@ function ImportRowItem({
       <div className="min-w-0">
         {res?.location_title ? (
           <>
-            <p className="truncate text-sm font-bold text-orbit-heading">{res.location_title}</p>
-            <p className="truncate text-xs text-orbit-muted">{[res.location_city, res.client_name].filter(Boolean).join(' · ')}</p>
+            <p className="wrap-anywhere text-sm font-bold text-orbit-heading">{res.location_title}</p>
+            <p className="wrap-anywhere text-xs text-orbit-muted">{[res.location_city, res.client_name].filter(Boolean).join(' · ')}</p>
           </>
         ) : (
-          <p className="truncate text-sm font-bold text-orbit-heading">{r.raw.business_name ?? r.raw.location_id ?? '—'}</p>
+          <p className="wrap-anywhere text-sm font-bold text-orbit-heading">{r.raw.business_name ?? r.raw.location_id ?? '—'}</p>
         )}
-        <p className="truncate text-xs text-orbit-muted">{r.raw.gmail ?? 'No Gmail'}</p>
+        <p className="wrap-anywhere text-xs text-orbit-muted">{r.raw.gmail ?? 'No Gmail'}</p>
         {r.status === 'needs_review' && r.candidates.length > 0 && editable && (
           <Select onValueChange={onPick} disabled={busy}>
             <SelectTrigger className="mt-2 h-9 border-amber-300 bg-amber-50/60 text-xs" aria-label={`Choose location for row ${r.row_number}`}>

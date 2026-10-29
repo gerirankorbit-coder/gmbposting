@@ -171,7 +171,8 @@ export const locationRoutes = new Hono<AuthEnv>()
     const body = await parseBody(c, locationUpdateSchema);
     const before = await loadLocation(id);
     if (body.default_connection_id) await assertConnectionHasAccess(id, body.default_connection_id);
-    unwrap(await db().from('locations').update(body).eq('id', id), 'Update location');
+    const patch = body.timezone && body.timezone !== before.timezone ? { ...body, timezone_source: 'manual' as const } : body;
+    unwrap(await db().from('locations').update(patch).eq('id', id), 'Update location');
     await logActivity({
       actor: c.get('user').id,
       action: 'location.updated',
@@ -184,10 +185,13 @@ export const locationRoutes = new Hono<AuthEnv>()
 
   .post('/bulk', requireRole('manager'), async (c) => {
     const body = await parseBody(c, locationBulkSchema);
-    const patch: { client_id?: string | null; is_active?: boolean; timezone?: string } = {};
+    const patch: { client_id?: string | null; is_active?: boolean; timezone?: string; timezone_source?: 'manual' } = {};
     if (body.client_id !== undefined) patch.client_id = body.client_id;
     if (body.is_active !== undefined) patch.is_active = body.is_active;
-    if (body.timezone !== undefined) patch.timezone = body.timezone;
+    if (body.timezone !== undefined) {
+      patch.timezone = body.timezone;
+      patch.timezone_source = 'manual';
+    }
     let updated = 0;
     for (const ids of chunk(body.ids, 200)) {
       const rows = unwrap(

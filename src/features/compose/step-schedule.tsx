@@ -146,7 +146,7 @@ export function StepSchedule({
               const loc = locById.get(d.location_id);
               return (
                 <li key={d.location_id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-sm">
-                  <span className="truncate font-semibold text-orbit-heading">{loc?.title}</span>
+                  <span className="wrap-anywhere font-semibold text-orbit-heading">{loc?.title}</span>
                   <span className="text-orbit-muted">
                     {loc && d.scheduled_at ? `${formatInZone(d.scheduled_at, loc.timezone)} (${loc.timezone})` : 'ASAP'}
                   </span>
