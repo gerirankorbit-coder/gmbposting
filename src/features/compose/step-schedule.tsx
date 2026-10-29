@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { CalendarClock, CalendarRange, Repeat, Rocket } from 'lucide-react';
 import type { LocationDTO } from '../../../shared/types';
+import { useHasRole } from '@/app/auth';
 import { formatInZone } from '@/lib/format';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +30,8 @@ export function StepSchedule({
     }
   }, [state, locById]);
 
+  const canPublishNow = useHasRole('manager');
+
   return (
     <div className="grid gap-6">
       <Segmented<ScheduleMode>
@@ -45,6 +48,7 @@ export function StepSchedule({
       {state.scheduleMode === 'asap' && (
         <p className="text-sm text-orbit-muted">
           Posts publish on the next publisher run (every 5 minutes) once they are approved.
+          {canPublishNow && ' Or click Publish now below to send them to Google straight away.'}
         </p>
       )}
 

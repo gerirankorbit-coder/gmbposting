@@ -22,6 +22,7 @@ import { GoogleClient, googleErrorMessage } from '../google/client.js';
 import { GoogleApiError } from '../google/errors.js';
 import { deleteLocalPost } from '../google/posts.js';
 import { createPosts } from '../posts/create.js';
+import { runPublisher } from '../publisher/run.js';
 import { regenerateBranded } from '../images/resolve.js';
 import { getPostItem, getPostRow, listPosts, POST_LIST_SELECT, toListItem } from '../posts/queries.js';
 
@@ -52,6 +53,29 @@ async function transition(
   return { updated, skipped: ids.length - updated };
 }
 
+/**
+ * Runs the publisher right away for "Publish now". It works through every due post (oldest
+ * first, up to the per-run limit), so anything it cannot reach in time goes out on the next
+ * scheduled run.
+ */
+async function publishNow(actorId: string, ids: string[]): Promise<NonNullable<CreatePostsResult['publish']>> {
+  await runPublisher({ actor: actorId, timeBudgetMs: 45_000 });
+  const now = new Date().toISOString();
+  const counts = { published: 0, failed: 0, queued: 0 };
+  for (const part of chunk(ids, 200)) {
+    const rows = unwrap(
+      await db().from('posts').select('status, scheduled_at').in('id', part),
+      'Load published posts',
+    );
+    for (const r of rows) {
+      if (r.status === 'published') counts.published++;
+      else if (r.status === 'failed') counts.failed++;
+      else if (r.scheduled_at && r.scheduled_at <= now) counts.queued++;
+    }
+  }
+  return counts;
+}
+
 export const postRoutes = new Hono<AuthEnv>()
   .get('/', async (c) => c.json(await listPosts(parseQuery(c, postListQuerySchema))))
 
@@ -75,8 +99,8 @@ export const postRoutes = new Hono<AuthEnv>()
   .post('/', async (c) => {
     const user = c.get('user');
     const body = await parseBody(c, createPostsSchema);
-    if (body.mode === 'approve' && !hasRole(user.role, 'manager')) {
-      throw forbidden('Only managers and admins can approve and schedule posts.');
+    if ((body.mode === 'approve' || body.mode === 'publish_now') && !hasRole(user.role, 'manager')) {
+      throw forbidden('Only managers and admins can approve and publish posts.');
     }
     let campaignId: string | null = null;
     if (body.campaign) {
@@ -104,12 +128,20 @@ export const postRoutes = new Hono<AuthEnv>()
     }
     await logActivity({
       actor: user.id,
-      action: body.mode === 'draft' ? 'posts.drafted' : body.mode === 'approve' ? 'posts.approved_and_scheduled' : 'posts.submitted',
+      action:
+        body.mode === 'draft'
+          ? 'posts.drafted'
+          : body.mode === 'approve'
+            ? 'posts.approved_and_scheduled'
+            : body.mode === 'publish_now'
+              ? 'posts.published_now'
+              : 'posts.submitted',
       entityType: campaignId ? 'campaign' : 'post',
       entityId: campaignId ?? result.ids[0] ?? null,
       details: { count: result.ids.length, status: result.status, campaign: body.campaign?.name ?? null },
     });
     const dto: CreatePostsResult = { campaign_id: campaignId, created: result.ids.length, status: result.status, post_ids: result.ids };
+    if (body.mode === 'publish_now') dto.publish = await publishNow(user.id, result.ids);
     return c.json(dto, 201);
   })
 
