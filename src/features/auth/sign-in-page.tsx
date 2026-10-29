@@ -1,4 +1,4 @@
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ClerkLoading, SignIn, SignUp, useAuth } from '@clerk/react';
 import { CalendarClock, ShieldCheck, Sparkles } from 'lucide-react';
 import { Bubbles, OrbitLine } from '@/components/layout/orbit-decor';
@@ -19,9 +19,19 @@ export function SignUpPage() {
   return <AuthPage mode="sign-up" />;
 }
 
+/** Hides Clerk's "Don't have an account? Sign up" link: accounts are created by invitation only. */
+const AUTH_APPEARANCE = { elements: { headerTitle: 'font-extrabold tracking-tight', footerAction: { display: 'none' } } };
+
 function AuthPage({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   const { isLoaded, isSignedIn } = useAuth();
   const [params] = useSearchParams();
+  const { pathname } = useLocation();
+  // Sign-up starts only from an invitation email link (it carries a __clerk_ticket); Clerk's own
+  // follow-up steps live on sub-paths such as /sign-up/continue.
+  const bareSignUp = pathname.replace(/\/+$/, '') === '/sign-up';
+  if (mode === 'sign-up' && bareSignUp && !params.get('__clerk_ticket') && !params.get('__clerk_status')) {
+    return <Navigate to="/sign-in" replace />;
+  }
   const redirect = params.get('redirect_url');
   const safeRedirect = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/';
 
@@ -71,14 +81,14 @@ function AuthPage({ mode }: { mode: 'sign-in' | 'sign-up' }) {
                 routing="path"
                 path="/sign-in"
                 forceRedirectUrl={safeRedirect}
-                appearance={{ elements: { headerTitle: 'font-extrabold tracking-tight' } }}
+                appearance={AUTH_APPEARANCE}
               />
             ) : (
               <SignUp
                 routing="path"
                 path="/sign-up"
                 forceRedirectUrl={safeRedirect}
-                appearance={{ elements: { headerTitle: 'font-extrabold tracking-tight' } }}
+                appearance={AUTH_APPEARANCE}
               />
             )}
             <p className="px-4 pb-3 pt-1 text-center text-xs text-orbit-muted">
