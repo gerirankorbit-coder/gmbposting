@@ -122,13 +122,13 @@ export function PostEditDialog({ post, open, onOpenChange }: { post: PostListIte
                 <Input id="edit-event-title" maxLength={58} value={eventTitle} onChange={(e) => setEventTitle(e.target.value)} />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="flex gap-2">
+                <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_7rem] gap-2">
                   <Input type="date" aria-label="Start date" value={start.date} onChange={(e) => setStart({ ...start, date: e.target.value })} />
-                  <Input type="time" aria-label="Start time" className="w-28" value={start.time} onChange={(e) => setStart({ ...start, time: e.target.value })} />
+                  <Input type="time" aria-label="Start time" value={start.time} onChange={(e) => setStart({ ...start, time: e.target.value })} />
                 </div>
-                <div className="flex gap-2">
+                <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_7rem] gap-2">
                   <Input type="date" aria-label="End date" value={end.date} onChange={(e) => setEnd({ ...end, date: e.target.value })} />
-                  <Input type="time" aria-label="End time" className="w-28" value={end.time} onChange={(e) => setEnd({ ...end, time: e.target.value })} />
+                  <Input type="time" aria-label="End time" value={end.time} onChange={(e) => setEnd({ ...end, time: e.target.value })} />
                 </div>
               </div>
               {post.topic_type === 'OFFER' && (

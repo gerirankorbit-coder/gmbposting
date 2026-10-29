@@ -11,7 +11,7 @@ export function Logo({ className, compact = false }: { className?: string; compa
       {compact ? (
         <img src="/favicon.svg" alt="" className="h-8 w-8" />
       ) : (
-        <img src="/logo.svg" alt="Rank Orbit" className="h-7 w-auto" />
+        <img src="/logo.png" alt="Rank Orbit" className="h-5 w-auto sm:h-6 2xl:h-7" />
       )}
     </Link>
   );

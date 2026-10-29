@@ -199,14 +199,14 @@ export function ComposePage() {
           {step === 2 && <StepContent state={state} patch={patch} locById={locById} />}
           {step === 3 && <StepSchedule state={state} patch={patch} locById={locById} />}
 
-          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-orbit-line pt-5 sm:flex-row sm:items-center">
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-orbit-line pt-5 sm:flex-row sm:flex-wrap sm:items-center">
             {step > 0 && (
               <Button variant="outline" onClick={() => setStep(step - 1)}>
                 <ArrowLeft /> Back
               </Button>
             )}
             {problem && problem.step <= step && <p className="text-sm font-medium text-amber-700 sm:mr-auto sm:pl-2">{problem.message}</p>}
-            <div className="flex flex-col gap-2 sm:ml-auto sm:flex-row">
+            <div className="flex flex-col gap-2 sm:ml-auto sm:flex-row sm:flex-wrap sm:justify-end">
               {step < STEPS.length - 1 ? (
                 <Button onClick={goNext}>
                   Next: {STEPS[step + 1]}
