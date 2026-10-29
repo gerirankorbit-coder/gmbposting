@@ -1,5 +1,5 @@
 import { Navigate, useSearchParams } from 'react-router-dom';
-import { ClerkLoading, SignIn, useAuth } from '@clerk/react';
+import { ClerkLoading, SignIn, SignUp, useAuth } from '@clerk/react';
 import { CalendarClock, ShieldCheck, Sparkles } from 'lucide-react';
 import { Bubbles, OrbitLine } from '@/components/layout/orbit-decor';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,6 +11,15 @@ const HIGHLIGHTS = [
 ];
 
 export function SignInPage() {
+  return <AuthPage mode="sign-in" />;
+}
+
+/** Where invitation links land: Clerk's sign-up form accepts the invitation ticket in the URL. */
+export function SignUpPage() {
+  return <AuthPage mode="sign-up" />;
+}
+
+function AuthPage({ mode }: { mode: 'sign-in' | 'sign-up' }) {
   const { isLoaded, isSignedIn } = useAuth();
   const [params] = useSearchParams();
   const redirect = params.get('redirect_url');
@@ -57,12 +66,24 @@ export function SignInPage() {
                 <Skeleton className="h-11 w-full rounded-full" />
               </div>
             </ClerkLoading>
-            <SignIn
-              routing="path"
-              path="/sign-in"
-              forceRedirectUrl={safeRedirect}
-              appearance={{ elements: { headerTitle: 'font-extrabold tracking-tight' } }}
-            />
+            {mode === 'sign-in' ? (
+              <SignIn
+                routing="path"
+                path="/sign-in"
+                forceRedirectUrl={safeRedirect}
+                appearance={{ elements: { headerTitle: 'font-extrabold tracking-tight' } }}
+              />
+            ) : (
+              <SignUp
+                routing="path"
+                path="/sign-up"
+                forceRedirectUrl={safeRedirect}
+                appearance={{ elements: { headerTitle: 'font-extrabold tracking-tight' } }}
+              />
+            )}
+            <p className="px-4 pb-3 pt-1 text-center text-xs text-orbit-muted">
+              Access is by invitation only. Ask your Rank Orbit admin for an invite.
+            </p>
           </div>
         </section>
       </div>

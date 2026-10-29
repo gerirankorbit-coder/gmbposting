@@ -3,7 +3,7 @@ import type { MiddlewareHandler } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { hasRole, ROLES, type Role } from '../../shared/types.js';
 import { requireEnv } from '../lib/env.js';
-import { forbidden, unauthorized } from '../lib/errors.js';
+import { ApiError, forbidden, unauthorized } from '../lib/errors.js';
 
 export interface AuthUser {
   id: string;
@@ -37,10 +37,11 @@ function parseRole(value: unknown): Role | null {
 }
 
 /**
- * Resolves the user's role. A user without a role becomes `admin` when no admin exists yet
- * (the very first team member), otherwise `writer`. The role is persisted to Clerk.
+ * Resolves the user's role. Access is invite-only: invited users get their role from the
+ * invitation, and admins grant or remove roles in Settings. The one exception is the very first
+ * user (no admin exists yet), who becomes `admin`. Anyone else without a role has no access.
  */
-async function resolveRole(userId: string, current: unknown): Promise<Role> {
+async function resolveRole(userId: string, current: unknown): Promise<Role | null> {
   const role = parseRole(current);
   if (role) return role;
   const client = getClerk();
@@ -48,9 +49,17 @@ async function resolveRole(userId: string, current: unknown): Promise<Role> {
   const adminExists = users.data.some(
     (u) => u.id !== userId && parseRole(u.publicMetadata?.role) === 'admin',
   );
-  const assigned: Role = adminExists ? 'writer' : 'admin';
-  await client.users.updateUserMetadata(userId, { publicMetadata: { role: assigned } });
-  return assigned;
+  if (adminExists) return null;
+  await client.users.updateUserMetadata(userId, { publicMetadata: { role: 'admin' } });
+  return 'admin';
+}
+
+export function noAccessError(email: string | null): ApiError {
+  return new ApiError(
+    403,
+    'no_access',
+    `${email ?? 'This account'} has not been given access to OrbitPost. Ask an admin to invite you.`,
+  );
 }
 
 async function loadUser(userId: string): Promise<AuthUser> {
@@ -62,6 +71,7 @@ async function loadUser(userId: string): Promise<AuthUser> {
     u.emailAddresses.find((e) => e.id === u.primaryEmailAddressId)?.emailAddress ??
     u.emailAddresses[0]?.emailAddress ??
     null;
+  if (!role) throw noAccessError(primaryEmail);
   const user: AuthUser = {
     id: u.id,
     email: primaryEmail,

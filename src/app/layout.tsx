@@ -1,10 +1,15 @@
 import { Suspense } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '@clerk/react';
+import { useAuth, useClerk } from '@clerk/react';
+import { LogOut, ShieldAlert } from 'lucide-react';
+import { ApiRequestError } from '@/lib/api';
+import { Bubbles } from '@/components/layout/orbit-decor';
+import { Button } from '@/components/ui/button';
 import { AnnouncementBar } from '@/components/layout/announcement-bar';
 import { Navbar } from '@/components/layout/navbar';
 import { NewPostFab } from '@/components/layout/new-post-fab';
 import { PageSkeleton } from '@/components/page-skeleton';
+import { useMe } from './auth';
 import { useSystemAlerts } from './system-alerts';
 
 function FullScreenLoader() {
@@ -26,7 +31,35 @@ export function AppLayout() {
     return <Navigate to={`/sign-in?redirect_url=${redirect}`} replace />;
   }
 
+  return <AccessGate />;
+}
+
+/** Signed in to Clerk is not enough: the account also needs a role (invite-only access). */
+function AccessGate() {
+  const me = useMe();
+  if (me.isLoading) return <FullScreenLoader />;
+  if (me.error instanceof ApiRequestError && me.error.code === 'no_access') return <NoAccess message={me.error.message} />;
   return <SignedInShell />;
+}
+
+function NoAccess({ message }: { message: string }) {
+  const { signOut } = useClerk();
+  return (
+    <div className="relative isolate flex min-h-screen items-center justify-center px-4 py-10">
+      <Bubbles className="-z-10" />
+      <div className="glass-card w-full max-w-md p-8 text-center">
+        <img src="/logo.svg" alt="Rank Orbit" className="mx-auto mb-8 h-7 w-auto" />
+        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+          <ShieldAlert className="h-6 w-6" aria-hidden />
+        </span>
+        <h1 className="text-2xl">Invite required</h1>
+        <p className="wrap-anywhere mt-3 text-sm text-orbit-muted">{message}</p>
+        <Button className="mt-6" variant="secondary" onClick={() => void signOut({ redirectUrl: '/sign-in' })}>
+          <LogOut /> Sign out
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 function SignedInShell() {

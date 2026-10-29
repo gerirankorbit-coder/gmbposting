@@ -4,8 +4,8 @@ import { getClerk } from '../middleware/auth.js';
 const TTL_MS = 5 * 60_000;
 let cache: { at: number; users: TeamMemberDTO[] } | null = null;
 
-function parseRole(v: unknown): Role {
-  return typeof v === 'string' && (ROLES as readonly string[]).includes(v) ? (v as Role) : 'writer';
+function parseRole(v: unknown): Role | null {
+  return typeof v === 'string' && (ROLES as readonly string[]).includes(v) ? (v as Role) : null;
 }
 
 /** Team members from Clerk (cached for 5 minutes per instance). */

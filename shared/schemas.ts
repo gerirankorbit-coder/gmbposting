@@ -338,6 +338,12 @@ export type SettingsUpdate = z.input<typeof settingsUpdateSchema>;
 
 export const roleUpdateSchema = z.object({ role: roleSchema });
 
+export const inviteSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Enter a valid email address.').max(254),
+  role: roleSchema,
+});
+export type InviteInput = z.input<typeof inviteSchema>;
+
 export const activityQuerySchema = z.object({
   entityType: z.string().max(40).optional(),
   actor: z.string().max(100).optional(),

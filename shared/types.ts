@@ -436,8 +436,16 @@ export interface TeamMemberDTO {
   name: string | null;
   email: string | null;
   image_url: string | null;
-  role: Role;
+  /** null = signed up without an invitation; no access until an admin grants a role. */
+  role: Role | null;
   last_sign_in_at: string | null;
+}
+
+export interface InvitationDTO {
+  id: string;
+  email: string;
+  role: Role | null;
+  created_at: string;
 }
 
 export interface DashboardDTO {

@@ -33,8 +33,13 @@ Vercel in step 6.
 2. **Configure → Restrictions → Sign-up mode → Restricted**, so only invited people can join.
 3. **API Keys**: copy the Publishable key → `VITE_CLERK_PUBLISHABLE_KEY` and the Secret key →
    `CLERK_SECRET_KEY`.
-4. Invite your team from **Users → Invite**. The first person to sign in becomes `admin`; everyone
-   after that starts as `writer`. Admins change roles on the **Settings** page.
+4. The first person to sign in becomes `admin`. Everyone else needs an invitation: admins invite
+   people from **Settings → Team access** (email + role); Clerk emails them a sign-up link to
+   `/sign-up`. The app itself also blocks any account without a role, so even if sign-up is left
+   public, uninvited people only see an "Invite required" screen. Admins can give such an account
+   access, or remove anyone's access, from the same card.
+5. Make sure `APP_URL` is set to your live address (e.g. `https://gmbposting.vercel.app`); the
+   invitation link uses it.
 
 ## 3. Google Cloud (the project whose Business Profile API access is approved)
 
@@ -114,7 +119,7 @@ Vercel Hobby cron jobs can only run once a day, so Supabase triggers the publish
 
 # First-run checklist
 
-1. Sign in (you become admin) and invite the team in Clerk.
+1. Sign in (you become admin) and invite the team from **Settings → Team access**.
 2. **Connections → Connect Google Account** for each Gmail. Each sync starts automatically.
 3. **Locations**: time zones are filled in from each address on sync (check them; a zone you
    change by hand is never overwritten), deactivate profiles you do not manage, set a default Gmail
