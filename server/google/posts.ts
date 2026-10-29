@@ -62,6 +62,10 @@ export async function deleteLocalPost(client: GoogleClient, postName: string): P
   await client.request(`${BASE}/${postName}`, { method: 'DELETE' });
 }
 
+export function getLocalPost(client: GoogleClient, postName: string): Promise<LocalPost> {
+  return client.request<LocalPost>(`${BASE}/${postName}`);
+}
+
 /** Converts a UTC instant to Google date/time objects in the given IANA timezone. */
 export function toGoogleDateTime(iso: string, timeZone: string): { date: GoogleDate; time: GoogleTime } {
   const parts = new Intl.DateTimeFormat('en-US', {
