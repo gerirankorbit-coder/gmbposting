@@ -53,19 +53,19 @@ export function StepDetails({ state, patch, clientId }: { state: ComposeState; p
               placeholder={state.topicType === 'OFFER' ? '15% off spring cleaning' : 'Open house weekend'}
             />
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-1.5">
+          <div className="grid gap-4 xl:grid-cols-2">
+            <div className="grid min-w-0 gap-1.5">
               <Label>Starts</Label>
-              <div className="flex gap-2">
-                <Input type="date" aria-label="Start date" value={state.eventStartDate} onChange={(e) => patch({ eventStartDate: e.target.value })} />
-                <Input type="time" aria-label="Start time" className="w-32" value={state.eventStartTime} onChange={(e) => patch({ eventStartTime: e.target.value })} />
+              <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
+                <Input type="date" aria-label="Start date" className="min-w-0" value={state.eventStartDate} onChange={(e) => patch({ eventStartDate: e.target.value })} />
+                <Input type="time" aria-label="Start time" className="min-w-0" value={state.eventStartTime} onChange={(e) => patch({ eventStartTime: e.target.value })} />
               </div>
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid min-w-0 gap-1.5">
               <Label>Ends</Label>
-              <div className="flex gap-2">
-                <Input type="date" aria-label="End date" value={state.eventEndDate} onChange={(e) => patch({ eventEndDate: e.target.value })} />
-                <Input type="time" aria-label="End time" className="w-32" value={state.eventEndTime} onChange={(e) => patch({ eventEndTime: e.target.value })} />
+              <div className="grid grid-cols-[minmax(0,1fr)_7.5rem] gap-2">
+                <Input type="date" aria-label="End date" className="min-w-0" value={state.eventEndDate} onChange={(e) => patch({ eventEndDate: e.target.value })} />
+                <Input type="time" aria-label="End time" className="min-w-0" value={state.eventEndTime} onChange={(e) => patch({ eventEndTime: e.target.value })} />
               </div>
             </div>
           </div>

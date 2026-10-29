@@ -48,7 +48,7 @@ function NoAccess({ message }: { message: string }) {
     <div className="relative isolate flex min-h-screen items-center justify-center px-4 py-10">
       <Bubbles className="-z-10" />
       <div className="glass-card w-full max-w-md p-8 text-center">
-        <img src="/logo.svg" alt="Rank Orbit" className="mx-auto mb-8 h-7 w-auto" />
+        <img src="/logo.png" alt="Rank Orbit" className="mx-auto mb-8 h-7 w-auto" />
         <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
           <ShieldAlert className="h-6 w-6" aria-hidden />
         </span>

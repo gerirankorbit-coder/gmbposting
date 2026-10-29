@@ -43,7 +43,7 @@ function AuthPage({ mode }: { mode: 'sign-in' | 'sign-up' }) {
       <div className="mx-auto grid min-h-screen max-w-7xl items-center gap-10 px-4 py-10 sm:px-8 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
         <section className="relative">
           <OrbitLine className="-left-16 top-6 -z-10 h-64 w-[120%] max-w-none" />
-          <img src="/logo.svg" alt="Rank Orbit" className="mb-10 h-8 w-auto" />
+          <img src="/logo.png" alt="Rank Orbit" className="mb-10 h-8 w-auto" />
           <span className="eyebrow mb-5">OrbitPost by Rank Orbit</span>
           <h1 className="text-4xl leading-[1.05] sm:text-5xl lg:text-6xl">
             Automate Your <span className="text-gradient">GBP Posting</span> Into Next Orbit

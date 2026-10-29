@@ -49,7 +49,7 @@ export function Navbar({ notificationSlot }: { notificationSlot?: React.ReactNod
                 end={item.to === '/'}
                 className={({ isActive: active }) =>
                   cn(
-                    'whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold transition-colors',
+                    'whitespace-nowrap rounded-full px-2.5 py-2 text-sm font-semibold transition-colors 2xl:px-3',
                     active
                       ? 'bg-orbit-gradient text-white shadow-glow'
                       : 'text-orbit-body hover:bg-orbit-primary/10 hover:text-orbit-primary',
@@ -65,7 +65,7 @@ export function Navbar({ notificationSlot }: { notificationSlot?: React.ReactNod
               <DropdownMenu>
                 <DropdownMenuTrigger
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold transition-colors',
+                    'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-2 text-sm font-semibold transition-colors 2xl:px-3',
                     moreActive
                       ? 'bg-orbit-gradient text-white shadow-glow'
                       : 'text-orbit-body hover:bg-orbit-primary/10 hover:text-orbit-primary',
